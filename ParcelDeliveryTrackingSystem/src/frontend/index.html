@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel Delivery Tracking System</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- ================= Sidebar ================= -->
+
+    <div class="d-flex">
+
+        <div class="sidebar shadow">
+
+            <div class="logo text-center py-4">
+
+                <i class="bi bi-box-seam-fill fs-1 text-warning"></i>
+
+                <h4 class="text-white mt-2">
+                    ParcelTrack
+                </h4>
+
+            </div>
+
+            <hr class="text-secondary">
+
+            <ul class="nav flex-column">
+
+                <li class="nav-item">
+
+                    <a href="index.html" class="nav-link active">
+
+                        <i class="bi bi-speedometer2"></i>
+
+                        Dashboard
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="register.html" class="nav-link">
+
+                        <i class="bi bi-plus-circle"></i>
+
+                        Register Parcel
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="parcels.html" class="nav-link">
+
+                        <i class="bi bi-box"></i>
+
+                        All Parcels
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="tracking.html" class="nav-link">
+
+                        <i class="bi bi-geo-alt"></i>
+
+                        Tracking
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="dispatch.html" class="nav-link">
+
+                        <i class="bi bi-truck"></i>
+
+                        Dispatch
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+        <!-- ================= Main Content ================= -->
+
+        <div class="content flex-grow-1">
+
+            <!-- Navbar -->
+
+            <nav class="navbar navbar-expand-lg bg-white shadow-sm px-4">
+
+                <div class="container-fluid">
+
+                    <h3 class="fw-bold">
+
+                        Dashboard
+
+                    </h3>
+
+                    <form class="d-flex">
+
+                        <input class="form-control me-2"
+
+                            type="search"
+
+                            placeholder="Search Parcel ID">
+
+                        <button class="btn btn-warning">
+
+                            <i class="bi bi-search"></i>
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </nav>
+
+            <!-- Dashboard -->
+
+            <div class="container-fluid mt-4">
+
+                <div class="row g-4">
+
+                    <!-- Card -->
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="card stats-card shadow">
+
+                            <div class="card-body">
+
+                                <i class="bi bi-box-seam-fill display-5 text-primary"></i>
+
+                                <h5 class="mt-3">
+
+                                    Total Parcels
+
+                                </h5>
+
+                                <h2>
+
+                                    248
+
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="card stats-card shadow">
+
+                            <div class="card-body">
+
+                                <i class="bi bi-truck display-5 text-warning"></i>
+
+                                <h5 class="mt-3">
+
+                                    In Transit
+
+                                </h5>
+
+                                <h2>
+
+                                    84
+
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="card stats-card shadow">
+
+                            <div class="card-body">
+
+                                <i class="bi bi-check-circle-fill display-5 text-success"></i>
+
+                                <h5 class="mt-3">
+
+                                    Delivered
+
+                                </h5>
+
+                                <h2>
+
+                                    141
+
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="card stats-card shadow">
+
+                            <div class="card-body">
+
+                                <i class="bi bi-clock-history display-5 text-danger"></i>
+
+                                <h5 class="mt-3">
+
+                                    Pending
+
+                                </h5>
+
+                                <h2>
+
+                                    23
+
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Recent Deliveries -->
+
+                <div class="row mt-5">
+
+                    <div class="col-lg-8">
+
+                        <div class="card shadow">
+
+                            <div class="card-header bg-primary text-white">
+
+                                <h5>
+
+                                    Recent Deliveries
+
+                                </h5>
+
+                            </div>
+
+                            <div class="table-responsive">
+
+                                <table class="table table-hover">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>Parcel ID</th>
+
+                                            <th>Sender</th>
+
+                                            <th>Receiver</th>
+
+                                            <th>Status</th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody>
+
+                                        <tr>
+
+                                            <td>P001</td>
+
+                                            <td>Victor</td>
+
+                                            <td>Amina</td>
+
+                                            <td>
+
+                                                <span class="badge bg-success">
+
+                                                    Delivered
+
+                                                </span>
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <td>P002</td>
+
+                                            <td>James</td>
+
+                                            <td>Kevin</td>
+
+                                            <td>
+
+                                                <span class="badge bg-warning">
+
+                                                    In Transit
+
+                                                </span>
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <td>P003</td>
+
+                                            <td>Sarah</td>
+
+                                            <td>John</td>
+
+                                            <td>
+
+                                                <span class="badge bg-primary">
+
+                                                    Registered
+
+                                                </span>
+
+                                            </td>
+
+                                        </tr>
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Tracking Timeline -->
+
+                    <div class="col-lg-4">
+
+                        <div class="card shadow">
+
+                            <div class="card-header bg-success text-white">
+
+                                <h5>
+
+                                    Live Tracking
+
+                                </h5>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="timeline">
+
+                                    <p>
+
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+
+                                        Parcel Registered
+
+                                    </p>
+
+                                    <p>
+
+                                        <i class="bi bi-truck text-warning"></i>
+
+                                        Dispatched
+
+                                    </p>
+
+                                    <p>
+
+                                        <i class="bi bi-geo-alt-fill text-primary"></i>
+
+                                        Arrived Nairobi Hub
+
+                                    </p>
+
+                                    <p>
+
+                                        <i class="bi bi-house-check-fill text-success"></i>
+
+                                        Delivered
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Parcel Summary -->
+                <div class="card shadow mt-5">
+                    <div class="card-header bg-dark text-white">
+                        Parcel Summary
+                    </div>
+
+                    <div class="card-body">
+                        <p>
+                            ✔ 248 Parcels Registered
+                        </p>
+                        <p>
+                            ✔ 141 Successfully Delivered
+                        </p>
+                        <p>
+                            ✔ 84 Currently In Transit
+                        </p>
+                        <p>
+                            ✔ 23 Awaiting Dispatch
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
