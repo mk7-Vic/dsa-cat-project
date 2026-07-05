@@ -1,9 +1,7 @@
 package model;
 
 import datastructures.TrackingHistory;
-
 public class Parcel {
-
     // Attributes
     private String parcelID;
     private String sender;
@@ -23,7 +21,6 @@ public class Parcel {
                 String destination,
                 double weight,
                 String priority) {
-
         this.parcelID = parcelID;
         this.sender = sender;
         this.receiver = receiver;
@@ -42,7 +39,6 @@ public class Parcel {
     }
 
     // Getters
-
     public String getParcelID() {
         return parcelID;
     }
@@ -76,7 +72,6 @@ public class Parcel {
     }
 
     // Setters
-
     public void setSender(String sender) {
         this.sender = sender;
     }
@@ -98,18 +93,14 @@ public class Parcel {
     }
 
     public void setStatus(String status) {
-
         this.status = status;
-
         // Automatically add every status update
         trackingHistory.addStatus(status);
-
     }
 
     // Display Parcel Details
 
     public void displayParcel() {
-
         System.out.println("--------------------------------------------");
         System.out.println("Parcel ID      : " + parcelID);
         System.out.println("Sender         : " + sender);
@@ -123,18 +114,13 @@ public class Parcel {
     }
 
     // Print tracking history
-
     public void displayTrackingHistory() {
-
         trackingHistory.displayHistory();
-
     }
 
     // String representation
-
     @Override
     public String toString() {
-
         return String.format(
                 "%-8s %-12s %-12s %-15s %-8.2f %-10s %-15s",
                 parcelID,
@@ -145,7 +131,5 @@ public class Parcel {
                 priority,
                 status
         );
-
     }
-
 }
