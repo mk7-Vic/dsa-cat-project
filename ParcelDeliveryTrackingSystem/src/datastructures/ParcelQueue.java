@@ -1,59 +1,91 @@
 package datastructures;
 
-import java.util.LinkedList;
-import java.util.Queue;
 import model.Parcel;
 public class ParcelQueue {
+    // Queue Node
+    private static class QueueNode {
+        private Parcel parcel;
+        private QueueNode next;
+        public QueueNode(Parcel parcel) {
+            this.parcel = parcel;
+            this.next = null;
+        }
+    }
 
-    // Queue to store parcels waiting for dispatch
-    private Queue<Parcel> queue;
+    // Front and Rear pointers
+    private QueueNode front;
+    private QueueNode rear;
+    private int size;
+
     // Constructor
     public ParcelQueue() {
-        queue = new LinkedList<>();
+        front = null;
+        rear = null;
+        size = 0;
     }
 
-    // Add parcel to the rear of the queue
+    // Add parcel to rear
     public void enqueue(Parcel parcel) {
-        queue.offer(parcel);
+        QueueNode newNode = new QueueNode(parcel);
+        if(isEmpty()){
+            front = newNode;
+            rear = newNode;
+        }
+
+        else{
+            rear.next = newNode;
+            rear = newNode;
+        }
+        size++;
     }
 
-    // Remove parcel from the front of the queue
+    // Remove parcel from front
     public Parcel dequeue() {
-        if(queue.isEmpty()){
+        if(isEmpty()){
             System.out.println("Dispatch queue is empty.");
             return null;
         }
-        return queue.poll();
+
+        Parcel parcel = front.parcel;
+        front = front.next;
+        if(front == null){
+            rear = null;
+        }
+        size--;
+        return parcel;
     }
 
-    // View the first parcel without removing it
+    // View first parcel
     public Parcel peek() {
-        if(queue.isEmpty()){
+        if(isEmpty()){
             return null;
         }
-        return queue.peek();
+        return front.parcel;
     }
 
     // Check if queue is empty
     public boolean isEmpty() {
-        return queue.isEmpty();
+        return front == null;
     }
 
-    // Number of parcels in queue
+    // Number of parcels
     public int size() {
-        return queue.size();
+        return size;
     }
 
-    // Display all parcels waiting for dispatch
+    // Display queue
     public void displayQueue() {
-        if(queue.isEmpty()){
+        if(isEmpty()){
             System.out.println("No parcels waiting for dispatch.");
             return;
         }
-        System.out.println("\nDispatch Queue");
+        System.out.println();
+        System.out.println("Dispatch Queue");
         System.out.println("--------------------------------------------------------------");
-        for(Parcel parcel : queue){
-            System.out.println(parcel);
+        QueueNode current = front;
+        while(current != null){
+            System.out.println(current.parcel);
+            current = current.next;
         }
     }
 }

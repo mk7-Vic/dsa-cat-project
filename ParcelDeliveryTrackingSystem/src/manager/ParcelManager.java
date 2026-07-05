@@ -1,19 +1,19 @@
 package manager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-
+import algorithms.QuickSort;
+import algorithms.Search;
+import datastructures.ParcelHashTable;
 import datastructures.ParcelQueue;
 import model.Parcel;
-
 public class ParcelManager {
-    // Hash Table
-    private HashMap<String, Parcel> parcels;
+    // Custom Hash Table
+    private ParcelHashTable parcels;
     // Dispatch Queue
     private ParcelQueue dispatchQueue;
     // Constructor
     public ParcelManager() {
-        parcels = new HashMap<>();
+        parcels = new ParcelHashTable();
         dispatchQueue = new ParcelQueue();
     }
 
@@ -28,18 +28,14 @@ public class ParcelManager {
         return true;
     }
 
-    // Search parcel using HashMap
+    // Search parcel using Custom Hash Table
     public Parcel searchParcel(String parcelID) {
         return parcels.get(parcelID);
     }
 
     // Delete parcel
     public boolean deleteParcel(String parcelID) {
-        if(parcels.containsKey(parcelID)){
-            parcels.remove(parcelID);
-            return true;
-        }
-        return false;
+        return parcels.remove(parcelID);
     }
 
     // Update parcel status
@@ -64,10 +60,12 @@ public class ParcelManager {
 
     // Display all parcels
     public void displayAllParcels() {
-        if(parcels.isEmpty()){
+        ArrayList<Parcel> parcelList = parcels.getAllParcels();
+        if(parcelList.isEmpty()){
             System.out.println("No parcels available.");
             return;
         }
+
         System.out.println();
         System.out.printf("%-8s %-12s %-12s %-15s %-8s %-10s %-15s%n",
                 "ID",
@@ -78,7 +76,7 @@ public class ParcelManager {
                 "Priority",
                 "Status");
         System.out.println("--------------------------------------------------------------------------");
-        for(Parcel parcel : parcels.values()){
+        for(Parcel parcel : parcelList){
             System.out.println(parcel);
         }
     }
@@ -102,8 +100,27 @@ public class ParcelManager {
         return parcels.size();
     }
 
-    // Return all parcels (needed for sorting)
+    // Return all parcels
     public ArrayList<Parcel> getAllParcels() {
-        return new ArrayList<>(parcels.values());
+        return parcels.getAllParcels();
+    }
+
+    // Sort parcels by priority
+    public void sortParcelsByPriority() {
+        ArrayList<Parcel> parcelList = getAllParcels();
+        QuickSort.sortByPriority(parcelList);
+        QuickSort.displaySorted(parcelList);
+    }
+
+    // Binary Search
+    public Parcel binarySearchParcel(String parcelID) {
+        ArrayList<Parcel> parcelList = getAllParcels();
+        Search.sortByParcelID(parcelList);
+        return Search.binarySearch(parcelList, parcelID);
+    }
+
+    // Display the Hash Table (for demonstration)
+    public void displayHashTable() {
+        parcels.display();
     }
 }
