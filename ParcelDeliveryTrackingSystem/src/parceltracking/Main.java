@@ -16,7 +16,7 @@ public class Main {
         // Create Parcel Manager
         ParcelManager manager = new ParcelManager();
         System.out.println("==========================================");
-        System.out.println(" PARCEL DELIVERY TRACKING SYSTEM ");
+        System.out.println("       PARCEL DELIVERY TRACKING SYSTEM    ");
         System.out.println("==========================================");
 
         /*REGISTER PARCELS*/
@@ -98,26 +98,22 @@ public class Main {
         System.out.println("Total Parcels : " + manager.totalParcels());
         System.out.println();
         System.out.println("==========================================");
-        System.out.println(" END OF DEMONSTRATION ");
+        System.out.println("            END OF DEMONSTRATION          ");
         System.out.println("==========================================");
 
-        // ==========================================
         //  NEW: START API SERVER FOR HTML FRONTEND
-        // ==========================================
         try {
             // Start server on port 8080
             HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
             System.out.println("\n[SERVER] Starting backend API server...");
 
-            // Create endpoint: http://localhost:8080/api/track
+            // 1. ENDPOINT: TRACK PARCEL
             server.createContext("/api/track", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange exchange) throws IOException {
-                    // Fix CORS errors so HTML frontend can fetch safely
                     exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
                     exchange.getResponseHeaders().set("Content-Type", "application/json");
 
-                    // Read the URL query parameters (e.g., /api/track?id=P001)
                     String query = exchange.getRequestURI().getQuery();
                     String parcelId = "";
                     if (query != null && query.contains("id=")) {
@@ -125,7 +121,6 @@ public class Main {
                     }
 
                     String jsonResponse;
-                    // Use your existing manager instance to find the parcel
                     Parcel requestedParcel = manager.searchParcel(parcelId);
 
                     if (requestedParcel != null) {
@@ -142,8 +137,61 @@ public class Main {
                 }
             });
 
+            // 2. ENDPOINT: DISPATCH PARCEL
+            server.createContext("/api/dispatch", new HttpHandler() {
+                @Override
+                public void handle(HttpExchange exchange) throws IOException {
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+
+                    // Handle preflight requests from the browser
+                    if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+
+                    // Trigger the backend queue dequeue logic
+                    Parcel dispatchedParcel = manager.dispatchNextParcel();
+                    String jsonResponse;
+                    int statusCode;
+
+                    if (dispatchedParcel != null) {
+                        jsonResponse = "{\"status\":\"success\", \"parcelId\":\"" + dispatchedParcel.getParcelID() + "\"}";
+                        statusCode = 200;
+                    } else {
+                        jsonResponse = "{\"status\":\"error\", \"message\":\"Queue is empty\"}";
+                        statusCode = 400;
+                    }
+
+                    exchange.sendResponseHeaders(statusCode, jsonResponse.getBytes().length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(jsonResponse.getBytes());
+                    os.close();
+                }
+            });
+
+            // 3. ENDPOINT: SORT PARCELS
+            server.createContext("/api/sort", new HttpHandler() {
+                @Override
+                public void handle(HttpExchange exchange) throws IOException {
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+
+                    // Trigger the backend Quicksort logic
+                    manager.sortParcelsByPriority();
+                    
+                    // Respond to the frontend
+                    String jsonResponse = "{\"status\":\"success\", \"message\":\"Backend successfully executed Quicksort!\"}";
+                    
+                    exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(jsonResponse.getBytes());
+                    os.close();
+                }
+            });
+
             server.start();
             System.out.println("[SERVER] Java API live at: http://localhost:8080/api/track?id=P001");
+            System.out.println("[SERVER] Ready for frontend fetch requests!");
 
         } catch (IOException e) {
             System.err.println("[SERVER] Failed to start server: " + e.getMessage());
