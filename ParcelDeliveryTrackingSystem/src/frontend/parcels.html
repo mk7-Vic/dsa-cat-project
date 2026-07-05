@@ -137,7 +137,7 @@
                                 <button type="reset" class="btn btn-secondary">
                                     <i class="bi bi-arrow-counterclockwise"></i> Reset
                                 </button>
-                                <button type="submit" class="btn btn-primary">
+                                <button id="registerBtn" type="submit" class="btn btn-primary">
                                     <i class="bi bi-box-seam"></i> Register Parcel
                                 </button>
                             </div>
@@ -150,7 +150,7 @@
                         <h4 class="fw-bold">
                             Recent Parcels
                         </h4>
-                        <button class="btn btn-success">
+                        <button id="exportBtn" class="btn btn-success">
                             <i class="bi bi-download"></i>
                             Export
                         </button>
@@ -167,6 +167,9 @@
                                     <th>Priority</th>
                                     <th>Actions</th>
                                 </tr>
+                                <th style="cursor: pointer;" onclick="triggerQuicksort('priority')" class="user-select-none hover-shadow">
+                                    Priority <i class="bi bi-arrow-down-up text-muted ms-1"></i>
+                                </th>
                             </thead>
                             <tbody>
                                 <tr>

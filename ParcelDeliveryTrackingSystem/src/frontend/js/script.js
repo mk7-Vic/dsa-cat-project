@@ -61,7 +61,7 @@ function animateCounters(){
 
 /*SEARCH BAR*/
 function searchParcel(){
-    const input=document.querySelector("input[type='search']");
+    const searchInput=document.getElementById("searchInput");
     if(!input) return;
     input.addEventListener("keyup",function(){
         console.log("Searching for:",input.value);
@@ -122,12 +122,18 @@ function enableDarkMode(){
     button.addEventListener("click",()=>{
         dark=!dark;
         if(dark){
-            document.body.style.background="#121212";
-            document.body.style.color="white";
+            document.body.classList.toggle("dark-mode");
+            button.innerHTML = "<i class='bi bi-sun-fill text-warning'></i>";
+            
+            // Optional: Make the button itself light to contrast the dark background
+            button.classList.replace("btn-dark", "btn-light");
         }
         else{
-            document.body.style.background="#eef2f7";
-            document.body.style.color="black";
+            document.body.classList.remove("dark-mode");
+            button.innerHTML = "<i class='bi bi-moon-fill'></i>";
+            
+            // Optional: Make the button itself dark to contrast the light background
+            button.classList.replace("btn-light", "btn-dark");
         }
     });
 }
@@ -148,3 +154,238 @@ function sidebarToggle(){
 
 /*SMOOTH SCROLL*/
 document.documentElement.style.scrollBehavior="smooth";
+
+/*REGISTER PARCEL FORM*/
+
+const parcelForm=document.getElementById("parcelForm");
+
+if(parcelForm){
+    parcelForm.addEventListener("submit",function(e){
+
+        e.preventDefault();
+        const sender=document.getElementById("senderName").value.trim();
+        const receiver=document.getElementById("receiverName").value.trim();
+        const destination=document.getElementById("destination").value.trim();
+        const weight=document.getElementById("weight").value.trim();
+        const priority=document.getElementById("priority").value;
+        const description=document.getElementById("description").value.trim();
+
+        if(
+            sender===""||
+            receiver===""||
+            destination===""||
+            weight===""||
+            priority===""||
+            description===""){
+                
+            alert("Please fill in all the required fields.");
+            return;
+        }
+
+        if(Number(weight)<=0){
+            alert("Weight must be greater than 0.");
+            return;
+        }
+        alert("Parcel Registered Successfully!");
+        parcelForm.reset();
+    });
+}
+
+/*SEARCH PARCEL TABLE*/
+
+const searchInput=document.getElementById("searchInput");
+
+if(searchInput){
+
+    searchInput.addEventListener("keyup",function(){
+
+        const value=this.value.toLowerCase();
+
+        const rows=document.querySelectorAll("tbody tr");
+
+        rows.forEach(row=>{
+
+            row.style.display=row.innerText.toLowerCase().includes(value)
+            ?"":"none";
+
+        });
+
+    });
+
+}
+
+/*VIEW BUTTONS*/
+
+const viewButtons=document.querySelectorAll(".btn-primary");
+
+viewButtons.forEach(button=>{
+
+    if(button.querySelector(".bi-eye")){
+
+        button.addEventListener("click",function(){
+
+            const modal=new bootstrap.Modal(document.getElementById("viewParcelModal"));
+
+            modal.show();
+
+        });
+
+    }
+
+});
+
+/*DELETE BUTTON*/
+
+const deleteButtons=document.querySelectorAll(".btn-danger");
+
+deleteButtons.forEach(button=>{
+
+    if(button.querySelector(".bi-trash")){
+
+        button.addEventListener("click",function(){
+
+            if(confirm("Delete this parcel?")){
+
+                this.closest("tr").remove();
+
+            }
+
+        });
+
+    }
+
+});
+
+/*EDIT BUTTON*/
+
+const editButtons=document.querySelectorAll(".btn-warning");
+
+editButtons.forEach(button=>{
+
+    if(button.querySelector(".bi-pencil-square")){
+
+        button.addEventListener("click",function(){
+
+            alert("Edit functionality will be connected to Java backend.");
+
+        });
+
+    }
+
+});
+
+/*TRACK PARCEL*/
+
+const trackButton=document.getElementById("trackBtn");
+
+if(trackButton){
+    trackButton.addEventListener("click",function(){
+        const parcelID=document.getElementById("trackingInput").value.trim();
+
+        if(parcelID===""){
+            alert("Enter Parcel ID");
+            return;
+        }
+
+        alert("Tracking Parcel: "+parcelID);
+
+    });
+
+}
+
+// 1. DISPATCH NEXT PARCEL (Triggers Backend Queue Dequeue)
+const dispatchButton = document.getElementById("dispatchBtn");
+
+if(dispatchButton){
+    dispatchButton.addEventListener("click", async function(){
+        try {
+            // Send request to your Java backend to dequeue the next parcel
+            const response = await fetch('http://localhost:8080/api/dispatch', {
+                method: 'POST', // or GET, depending on your Java setup
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // data.parcelId should be sent back from your Java Hash Map/Queue
+                alert("Backend Success! Dispatched Parcel: " + data.parcelId); 
+                
+                // Reload the page to reflect the new queue state from the backend
+                location.reload(); 
+            } else {
+                alert("Failed to dispatch. Check your Java backend logic.");
+            }
+        } catch (error) {
+            console.error("Connection failed:", error);
+            alert("Could not connect to the server. Is your VS Code Java server running?");
+        }
+    });
+}
+
+//2.TRIGGER QUICKSORT (Calls backend algorithm)
+// This function is triggered by the onclick event we added to the HTML header
+async function triggerQuicksort(sortByColumn) {
+    try {
+        // We pass the column name to the backend so it knows what to sort by
+        const response = await fetch(`http://localhost:8080/api/sort?column=${sortByColumn}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const sortedParcels = await response.json();
+            console.log("Sorted Data from Backend:", sortedParcels);
+            alert("Quicksort executed on backend! Check console for sorted array.");
+            
+        } else {
+            alert("Backend sorting failed.");
+        }
+    } catch (error) {
+        console.error("Connection failed:", error);
+        alert("Could not connect to the server. Is your VS Code Java server running?");
+    }
+}
+
+/* EXPORT BUTTON */
+const exportBtn = document.getElementById("exportBtn");
+if (exportBtn) {
+    exportBtn.addEventListener("click", function() {
+        alert("Exporting parcel list to CSV...");
+        // Add your export logic here later
+    });
+}
+
+/* MAIN SEARCH BUTTON (DASHBOARD) */
+const searchBtn = document.getElementById("searchBtn");
+if (searchBtn) {
+    searchBtn.addEventListener("click", function(e) {
+        e.preventDefault(); // Prevent page reload since it's in a form
+        const searchInput = document.querySelector(".navbar input[type='search']");
+        if (searchInput && searchInput.value) {
+            alert("Searching system for: " + searchInput.value);
+        }
+    });
+}
+
+/*CURRENT DATE*/
+
+const navbar=document.querySelector(".navbar");
+
+if(navbar){
+
+    const today=new Date();
+
+    const date=document.createElement("span");
+
+    date.className="text-muted ms-auto";
+
+    date.innerHTML=today.toDateString();
+
+    navbar.appendChild(date);
+
+}
+
