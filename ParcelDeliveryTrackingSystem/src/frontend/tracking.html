@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel Tracking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="d-flex">
+        <div class="sidebar shadow">
+            <div class="logo text-center py-4">
+                <i class="bi bi-box-seam-fill fs-1 text-warning"></i>
+                <h4 class="text-white mt-2">ParcelTrack</h4>
+            </div>
+            <hr class="text-secondary">
+            <ul class="nav flex-column">
+                <li>
+                    <a href="index.html" class="nav-link">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="register.html" class="nav-link">
+                        <i class="bi bi-plus-circle"></i> Register Parcel
+                    </a>
+                </li>
+                <li>
+                    <a href="parcels.html" class="nav-link">
+                        <i class="bi bi-box"></i> All Parcels
+                    </a>
+                </li>
+                <li>
+                    <a href="tracking.html" class="nav-link active">
+                        <i class="bi bi-geo-alt"></i> Tracking
+                    </a>
+                </li>
+                <li>
+                    <a href="dispatch.html" class="nav-link">
+                        <i class="bi bi-truck"></i> Dispatch
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="content flex-grow-1">
+            <nav class="navbar bg-white shadow-sm px-4">
+                <h3 class="fw-bold">Parcel Tracking</h3>
+            </nav>
+
+            <div class="container-fluid mt-4">
+                <div class="card shadow border-0 mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-10">
+                                <input type="text" class="form-control" placeholder="Enter Parcel ID (Example: P001)">
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary w-100">
+                                    <i class="bi bi-search"></i> Track
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-primary text-white">
+                                <h5>Parcel Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Parcel ID:</strong> P001</p>
+                                <p><strong>Sender:</strong> Victor</p>
+                                <p><strong>Receiver:</strong> Amina</p>
+                                <p><strong>Weight:</strong> 4 kg</p>
+                                <p><strong>Priority:</strong> <span class="badge bg-danger">High</span></p>
+                                <p><strong>Status:</strong> <span class="badge bg-success">Delivered</span></p>
+                                <p><strong>Destination:</strong> Mombasa</p>
+                            </div>
+                        </div>
+
+                        <div class="card shadow border-0 mt-4">
+                            <div class="card-header bg-success text-white">
+                                <h5>Delivery Progress</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="progress" style="height:25px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:100%;">
+                                        100%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-8">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-dark text-white">
+                                <h5>Tracking Timeline</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="timeline">
+                                    <div class="timeline-item mb-4">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="bi bi-check-circle-fill fs-3 text-success"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Parcel Registered</h5>
+                                                <p class="text-muted mb-1">Parcel successfully registered into the system.</p>
+                                                <small class="text-secondary">01 July 2026 | 08:15 AM</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="timeline-item mb-4">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="bi bi-box-seam-fill fs-3 text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Collected from Sender</h5>
+                                                <p class="text-muted mb-1">Parcel collected by dispatch rider.</p>
+                                                <small class="text-secondary">01 July 2026 | 10:05 AM</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="timeline-item mb-4">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="bi bi-building fs-3 text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Arrived at Nairobi Hub</h5>
+                                                <p class="text-muted mb-1">Parcel sorted and ready for transportation.</p>
+                                                <small class="text-secondary">02 July 2026 | 09:40 AM</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="timeline-item mb-4">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="bi bi-truck fs-3 text-info"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Out for Delivery</h5>
+                                                <p class="text-muted mb-1">Courier is delivering the parcel to the recipient.</p>
+                                                <small class="text-secondary">03 July 2026 | 08:20 AM</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="timeline-item">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="bi bi-house-check-fill fs-3 text-success"></i>
+                                            </div>
+                                            <div>
+                                                <h5>Delivered Successfully</h5>
+                                                <p class="text-muted mb-1">Parcel received and signed for by the recipient.</p>
+                                                <small class="text-secondary">03 July 2026 | 11:15 AM</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-lg-6">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-info text-white">
+                                <h5>Delivery Route</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">📍 Nairobi Collection Centre</li>
+                                    <li class="list-group-item">📦 Nairobi Sorting Hub</li>
+                                    <li class="list-group-item">🚚 Mombasa Distribution Centre</li>
+                                    <li class="list-group-item">🏠 Recipient Address</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-warning">
+                                <h5>Courier Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Courier:</strong> John Kamau</p>
+                                <p><strong>Vehicle:</strong> KTM Motorcycle</p>
+                                <p><strong>Registration:</strong> KDM 245H</p>
+                                <p><strong>Phone:</strong> +254 712 345 678</p>
+                                <p><strong>Current Status:</strong> <span class="badge bg-success">Delivery Completed</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow border-0 mt-4 mb-5">
+                    <div class="card-header bg-success text-white">
+                        <h5>Delivery Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Registered</h6>
+                                <i class="bi bi-check-circle-fill text-success fs-2"></i>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Dispatched</h6>
+                                <i class="bi bi-check-circle-fill text-success fs-2"></i>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">In Transit</h6>
+                                <i class="bi bi-check-circle-fill text-success fs-2"></i>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Delivered</h6>
+                                <i class="bi bi-check-circle-fill text-success fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 mb-3 text-muted">
+        <small>© 2026 ParcelTrack. All Rights Reserved.</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
