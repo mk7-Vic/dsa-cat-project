@@ -6,264 +6,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Parcel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/style.css">
-
 </head>
+
 <body>
-
-
-<div class="d-flex">
-    <!--SIDEBAR-->
-    <div class="sidebar shadow">
-        <div class="logo text-center py-4">
-            <i class="bi bi-box-seam-fill fs-1 text-warning"></i>
-            <h4 class="text-white mt-2">
-                ParcelTrack
-            </h4>
+    <div class="d-flex">
+        <div class="sidebar shadow">
+            <div class="logo text-center py-4">
+                <i class="bi bi-box-seam-fill fs-1 text-warning"></i>
+                <h4 class="text-white mt-2">ParcelTrack</h4>
+            </div>
+            <hr class="text-secondary">
+            <ul class="nav flex-column">
+                <li>
+                    <a href="index.html" class="nav-link">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="register.html" class="nav-link active">
+                        <i class="bi bi-plus-circle"></i> Register Parcel
+                    </a>
+                </li>
+                <li>
+                    <a href="parcels.html" class="nav-link">
+                        <i class="bi bi-box"></i> All Parcels
+                    </a>
+                </li>
+                <li>
+                    <a href="tracking.html" class="nav-link">
+                        <i class="bi bi-geo-alt"></i> Tracking
+                    </a>
+                </li>
+                <li>
+                    <a href="dispatch.html" class="nav-link">
+                        <i class="bi bi-truck"></i> Dispatch
+                    </a>
+                </li>
+            </ul>
         </div>
-        <hr class="text-secondary">
-        <ul class="nav flex-column">
-            <li>
-                <a href="index.html" class="nav-link">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li>
-                <a href="register.html" class="nav-link active">
-                    <i class="bi bi-plus-circle"></i>
-                    Register Parcel
-                </a>
-            </li>
-            <li>
-                <a href="parcels.html" class="nav-link">
-                    <i class="bi bi-box"></i>
-                    All Parcels
-                </a>
-            </li>
-            <li>
-                <a href="tracking.html" class="nav-link">
-                    <i class="bi bi-geo-alt"></i>
-                    Tracking
-                </a>
-            </li>
-            <li>
 
-                <a href="dispatch.html" class="nav-link">
-                    <i class="bi bi-truck"></i>
-                    Dispatch
-                </a>
-            </li>
-        </ul>
-    </div>
+        <div class="content flex-grow-1">
+            <nav class="navbar bg-white shadow-sm px-4">
+                <h3 class="fw-bold">Register New Parcel</h3>
+            </nav>
 
-    <!--MAIN CONTENT-->
-    <div class="content flex-grow-1">
-        <nav class="navbar bg-white shadow-sm px-4">
-            <h3 class="fw-bold">
-                Register New Parcel
-            </h3>
-        </nav>
+            <div class="container-fluid mt-4">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Parcel Registration Form</h5>
+                    </div>
 
-        <div class="container-fluid mt-4">
-            <div class="card shadow border-0">
-                <div class="card-header bg-primary text-white">
-                    <h5>
-                        Parcel Registration Form
-                    </h5>
-                </div>
-
-                <div class="card-body">
-                    <form id="parcelForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Parcel ID
-                                </label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="parcelID"
-                                    placeholder="P001"
-                                    required>
+                    <div class="card-body">
+                        <form id="parcelForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="parcelID">Parcel ID</label>
+                                    <input type="text" class="form-control" id="parcelID" placeholder="P001" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="weight">Parcel Weight (kg)</label>
+                                    <input type="number" class="form-control" id="weight" required>
+                                </div>
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Parcel Weight (kg)
-                                </label>
-
-                                <input
-                                    type="number"
-                                    class="form-control"
-                                    id="weight"
-                                    required>
+                            
+                            <hr>
+                            
+                            <h5 class="mb-3">Sender Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="senderName">Sender Name</label>
+                                    <input type="text" class="form-control" id="senderName" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="senderPhone">Sender Phone</label>
+                                    <input type="tel" class="form-control" id="senderPhone" required>
+                                </div>
                             </div>
-                        </div>
-                        <hr>
-
-                        <h5 class="mb-3">
-                            Sender Information
-                        </h5>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Sender Name
-                                </label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="senderName"
-                                    required>
+                            
+                            <hr>
+                            
+                            <h5 class="mb-3">Receiver Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="receiverName">Receiver Name</label>
+                                    <input type="text" class="form-control" id="receiverName" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="receiverPhone">Receiver Phone</label>
+                                    <input type="tel" class="form-control" id="receiverPhone" required>
+                                </div>
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Sender Phone
-                                </label>
-
-                                <input
-                                    type="tel"
-                                    class="form-control"
-                                    id="senderPhone"
-                                    required>
+                            
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="pickupLocation">Pickup Location</label>
+                                    <input type="text" class="form-control" id="pickupLocation" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="destination">Destination</label>
+                                    <input type="text" class="form-control" id="destination" required>
+                                </div>
                             </div>
-                        </div>
-                        <hr>
-
-                        <h5 class="mb-3">
-                            Receiver Information
-                        </h5>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Receiver Name
-                                </label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="receiverName"
-                                    required>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" for="deliveryType">Delivery Type</label>
+                                    <select class="form-select" id="deliveryType">
+                                        <option>Normal</option>
+                                        <option>Express</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" for="priority">Priority</label>
+                                    <select class="form-select" id="priority">
+                                        <option>Low</option>
+                                        <option selected>Medium</option>
+                                        <option>High</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" for="deliveryDate">Expected Delivery</label>
+                                    <input type="date" class="form-control" id="deliveryDate">
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Receiver Phone
-                                </label>
-                                <input
-                                    type="tel"
-                                    class="form-control"
-                                    id="receiverPhone"
-                                    required>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" for="description">Parcel Description</label>
+                                <textarea class="form-control" rows="4" id="description"></textarea>
                             </div>
-                        </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Pickup Location
-                                </label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="pickupLocation"
-                                    required>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Upload Parcel Image</label>
+                                <input type="file" class="form-control">
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    Destination
-                                </label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="destination"
-                                    required>
+                            
+                            <div class="text-end mb-4">
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </button>
+                                <button id="registerBtn" type="submit" class="btn btn-primary">
+                                    <i class="bi bi-box-seam"></i> Register Parcel
+                                </button>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">
-                                    Delivery Type
-                                </label>
-
-                                <select class="form-select" id="deliveryType">
-                                    <option>Normal</option>
-                                    <option>Express</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">
-                                    Priority
-                                </label>
-
-                                <select class="form-select" id="priority">
-                                    <option>Low</option>
-                                    <option selected>Medium</option>
-                                    <option>High</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">
-                                    Expected Delivery
-                                </label>
-
-                                <input
-                                    type="date"
-                                    class="form-control"
-                                    id="deliveryDate">
-                            </div>
-
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">
-                                Parcel Description
-                            </label>
-
-                            <textarea
-                                class="form-control"
-                                rows="4"
-                                id="description"></textarea>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">
-                                Upload Parcel Image
-                            </label>
-
-                            <input
-                                type="file"
-                                class="form-control">
-                        </div>
-
-                        <div class="text-end">
-                            <button
-                                type="reset"
-                                class="btn btn-secondary">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                Reset
-                            </button>
-
-                            <button
-                                id="registerBtn"
-                                type="submit"
-                                class="btn btn-primary">
-                                <i class="bi bi-box-seam"></i>
-                                Register Parcel
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/script.js"></script>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>

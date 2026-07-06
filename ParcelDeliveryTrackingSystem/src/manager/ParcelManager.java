@@ -106,10 +106,10 @@ public class ParcelManager {
     }
 
     // Sort parcels by priority
-    public void sortParcelsByPriority() {
+    public ArrayList<Parcel> sortParcelsByPriority() {
         ArrayList<Parcel> parcelList = getAllParcels();
         QuickSort.sortByPriority(parcelList);
-        QuickSort.displaySorted(parcelList);
+        return parcelList;
     }
 
     // Binary Search

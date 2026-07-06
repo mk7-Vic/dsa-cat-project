@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded",function(){
     showWelcomeToast();
     enableDarkMode();
     sidebarToggle();
+    loadAllParcels();
 });
 
 
@@ -62,9 +63,9 @@ function animateCounters(){
 /*SEARCH BAR*/
 function searchParcel(){
     const searchInput=document.getElementById("searchInput");
-    if(!input) return;
-    input.addEventListener("keyup",function(){
-        console.log("Searching for:",input.value);
+    if(!searchInput) return;
+    searchInput.addEventListener("keyup",function(){
+        console.log("Searching for:",searchInput.value);
     });
 }
 
@@ -155,39 +156,84 @@ function sidebarToggle(){
 /*SMOOTH SCROLL*/
 document.documentElement.style.scrollBehavior="smooth";
 
-/*REGISTER PARCEL FORM*/
+function showNotification(message, type = 'success') {
+    const toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) return; // Failsafe in case the container is missing
 
-const parcelForm=document.getElementById("parcelForm");
+    // 1. Create the toast element
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-bg-${type} border-0 mb-2 shadow`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+
+    // 2. Determine the right Bootstrap icon based on the type
+    let icon = 'bi-info-circle-fill';
+    if (type === 'success') icon = 'bi-check-circle-fill';
+    if (type === 'danger') icon = 'bi-exclamation-triangle-fill';
+    if (type === 'warning') icon = 'bi-exclamation-circle-fill';
+
+    // 3. Add the HTML inside the toast
+    toastEl.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body fs-6">
+                <i class="bi ${icon} me-2"></i> ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    // 4. Append to container and show
+    toastContainer.appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+
+    // 5. Clean up the DOM after it fades out
+    toastEl.addEventListener('hidden.bs.toast', () => {
+        toastEl.remove();
+    });
+}
+
+/*REGISTER PARCEL FORM*/
+const parcelForm = document.getElementById("parcelForm");
 
 if(parcelForm){
-    parcelForm.addEventListener("submit",function(e){
-
+    parcelForm.addEventListener("submit", async function(e){
         e.preventDefault();
-        const sender=document.getElementById("senderName").value.trim();
-        const receiver=document.getElementById("receiverName").value.trim();
-        const destination=document.getElementById("destination").value.trim();
-        const weight=document.getElementById("weight").value.trim();
-        const priority=document.getElementById("priority").value;
-        const description=document.getElementById("description").value.trim();
+        
+        // Gather data from the form
+        const parcelData = {
+            parcelID: document.getElementById("parcelID").value.trim().toUpperCase(),
+            weight: document.getElementById("weight").value.trim(),
+            sender: document.getElementById("senderName").value.trim(),
+            receiver: document.getElementById("receiverName").value.trim(),
+            destination: document.getElementById("destination").value.trim(),
+            priority: document.getElementById("priority").value
+        };
 
-        if(
-            sender===""||
-            receiver===""||
-            destination===""||
-            weight===""||
-            priority===""||
-            description===""){
-                
-            alert("Please fill in all the required fields.");
-            return;
-        }
-
-        if(Number(weight)<=0){
+        if(Number(parcelData.weight) <= 0){
             alert("Weight must be greater than 0.");
             return;
         }
-        alert("Parcel Registered Successfully!");
-        parcelForm.reset();
+
+        try {
+            // Send to Java Backend
+            const response = await fetch('http://127.0.0.1:8080/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parcelData)
+            });
+
+            if (response.ok) {
+                showNotification(`Success! ${parcelData.parcelID} has been registered and added to the Queue.`, "success");
+                parcelForm.reset();
+            } else {
+                showNotification("Failed to register. Parcel ID might already exist.", "danger");
+            }
+        } catch (error) {
+            console.error("Connection failed:", error);
+            showNotification("Could not connect to the backend server.", "danger");
+        }
     });
 }
 
@@ -374,6 +420,7 @@ if(trackButton){
         }
     });
 }
+
 // 1. DISPATCH NEXT PARCEL (Triggers Backend Queue Dequeue)
 const dispatchButton = document.getElementById("dispatchBtn");
 
@@ -440,11 +487,12 @@ if(dispatchButton){
     });
 }
 
-//2.TRIGGER QUICKSORT (Calls backend algorithm)
-// This function is triggered by the onclick event we added to the HTML header
+// 2. TRIGGER QUICKSORT (Calls backend algorithm)
 async function triggerQuicksort(sortByColumn) {
     try {
-        // We pass the column name to the backend so it knows what to sort by
+        // Show a loading toast
+        showNotification(`Sorting by ${sortByColumn}...`, 'info');
+
         const response = await fetch(`http://127.0.0.1:8080/api/sort?column=${sortByColumn}`, {
             method: 'GET',
             headers: {
@@ -455,15 +503,61 @@ async function triggerQuicksort(sortByColumn) {
         if (response.ok) {
             const sortedParcels = await response.json();
             console.log("Sorted Data from Backend:", sortedParcels);
-            alert("Quicksort executed on backend! Check console for sorted array.");
             
+            // Rebuild the HTML table with the new sorted data
+            updateParcelTable(sortedParcels);
+            
+            // Show success toast instead of alert
+            showNotification("Quicksort executed successfully!", 'success');
         } else {
-            alert("Backend sorting failed.");
+            showNotification("Backend sorting failed.", 'danger');
         }
     } catch (error) {
         console.error("Connection failed:", error);
-        alert("Could not connect to the server. Is your VS Code Java server running?");
+        showNotification("Could not connect to the server. Is your Java server running?", 'danger');
     }
+}
+
+// Helper function to dynamically rebuild the table
+function updateParcelTable(parcels) {
+    // Select the table body in parcels.html
+    const tbody = document.querySelector(".table tbody");
+    if (!tbody) return; 
+
+    tbody.innerHTML = ""; // Clear the current unsorted rows
+
+    // Loop through the sorted array and build new rows
+    parcels.forEach(parcel => {
+        // Assign correct badge colors based on status/priority
+        let priorityBadge = parcel.priority.toLowerCase() === 'high' ? 'bg-danger' : 
+                            parcel.priority.toLowerCase() === 'medium' ? 'bg-warning text-dark' : 'bg-success';
+                            
+        let statusBadge = parcel.status.toLowerCase() === 'delivered' ? 'bg-success' :
+                          parcel.status.toLowerCase() === 'in transit' ? 'bg-warning text-dark' : 'bg-secondary';
+
+        const row = `
+            <tr>
+                <td>${parcel.id}</td>
+                <td>${parcel.sender}</td>
+                <td>${parcel.receiver}</td>
+                <td>${parcel.destination}</td>
+                <td><span class="badge ${statusBadge}">${parcel.status}</span></td>
+                <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewParcelModal">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="showNotification('Edit mode coming soon!', 'info')">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteDynamicRow(this, '${parcel.parcelID}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
 }
 
 /* EXPORT BUTTON */
@@ -492,16 +586,87 @@ if (searchBtn) {
 const navbar=document.querySelector(".navbar");
 
 if(navbar){
-
     const today=new Date();
-
     const date=document.createElement("span");
-
     date.className="text-muted ms-auto";
-
     date.innerHTML=today.toDateString();
-
     navbar.appendChild(date);
-
 }
 
+/*LOAD ALL PARCELS DYNAMICALLY INTO TABLE*/
+async function loadAllParcels() {
+    // Find the table body on the parcels.html page
+    const tableBody = document.querySelector(".card-body table tbody");
+    const isParcelsPage = document.querySelector("th[onclick*='triggerQuicksort']");
+    
+    // Only run this script if we are actually on the All Parcels page
+    if (!tableBody || !isParcelsPage) return;
+
+    try {
+        const response = await fetch('http://127.0.0.1:8080/api/parcels');
+        
+        if (response.ok) {
+            const parcels = await response.json();
+            
+            // 1. Wipe out the hardcoded dummy HTML rows!
+            tableBody.innerHTML = ""; 
+
+            // 2. Loop through the real data from Java and create new rows
+            parcels.forEach(parcel => {
+                let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
+                                   (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
+                
+                let statusBadge = parcel.status === "Delivered" ? "bg-success" :
+                                 (parcel.status === "Dispatched" ? "bg-primary" : "bg-secondary");
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${parcel.parcelID}</td>
+                    <td>${parcel.sender}</td>
+                    <td>${parcel.receiver}</td>
+                    <td>${parcel.destination}</td>
+                    <td><span class="badge ${statusBadge}">${parcel.status}</span></td>
+                    <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewParcelModal">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="showNotification('Edit mode coming soon!', 'info')">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDynamicRow(this, '${parcel.parcelID}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+    } catch (error) {
+        console.error("Failed to load parcels from backend:", error);
+    }
+}
+
+/*DELETE PARCEL DYNAMICALLY (CRUD: DELETE)*/
+window.deleteDynamicRow = async function(buttonElement, parcelID) {
+    if(confirm(`Are you sure you want to completely delete Parcel ${parcelID} from the system?`)) {
+        try {
+            // Send DELETE request to Java Backend
+            const response = await fetch(`http://127.0.0.1:8080/api/delete?id=${parcelID}`, {
+                method: 'DELETE'
+            });
+            
+            if(response.ok) {
+                // Remove from the UI visually
+                buttonElement.closest("tr").remove();
+                showNotification(`Parcel ${parcelID} deleted successfully.`, "success");
+            } else {
+                showNotification(`Failed to delete Parcel ${parcelID}.`, "danger");
+            }
+        } catch (error) {
+            console.error("Connection failed:", error);
+            showNotification("Could not connect to backend.", "danger");
+        }
+    }
+}

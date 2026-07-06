@@ -196,6 +196,114 @@ public class Main {
             System.out.println("[SERVER] Java API live at: http://127.0.0.1:8080/api/track?id=P001");
             System.out.println("[SERVER] Ready for frontend fetch requests!");
 
+            // 4. ENDPOINT: REGISTER NEW PARCEL
+            server.createContext("/api/register", new HttpHandler() {
+                @Override
+                public void handle(HttpExchange exchange) throws IOException {
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "POST, OPTIONS");
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+
+                    if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+
+                    // Read the incoming JSON from JavaScript
+                    java.util.Scanner scanner = new java.util.Scanner(exchange.getRequestBody()).useDelimiter("\\A");
+                    String requestBody = scanner.hasNext() ? scanner.next() : "";
+                    
+                    // Manually extract the values (since we aren't using external JSON libraries)
+                    String id = extractJsonValue(requestBody, "parcelID");
+                    String sender = extractJsonValue(requestBody, "sender");
+                    String receiver = extractJsonValue(requestBody, "receiver");
+                    String destination = extractJsonValue(requestBody, "destination");
+                    String priority = extractJsonValue(requestBody, "priority");
+                    double weight = Double.parseDouble(extractJsonValue(requestBody, "weight"));
+
+                    // Create and register the parcel in the backend
+                    Parcel newParcel = new Parcel(id, sender, receiver, destination, weight, priority);
+                    boolean success = manager.registerParcel(newParcel);
+
+                    String jsonResponse;
+                    if (success) {
+                        jsonResponse = "{\"status\":\"success\"}";
+                        exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
+                    } else {
+                        jsonResponse = "{\"status\":\"error\", \"message\":\"ID exists\"}";
+                        exchange.sendResponseHeaders(400, jsonResponse.getBytes().length);
+                    }
+
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(jsonResponse.getBytes());
+                    os.close();
+                }
+            });
+            // 5. ENDPOINT: GET ALL PARCELS
+            server.createContext("/api/parcels", new HttpHandler() {
+                @Override
+                public void handle(HttpExchange exchange) throws IOException {
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                    exchange.getResponseHeaders().set("Content-Type", "application/json");
+
+                    // Get all parcels from your ParcelManager
+                    java.util.ArrayList<Parcel> allParcels = manager.getAllParcels();
+                    
+                    // Manually build a JSON Array string since we aren't using external libraries
+                    StringBuilder jsonBuilder = new StringBuilder("[");
+                    for (int i = 0; i < allParcels.size(); i++) {
+                        jsonBuilder.append(convertParcelToJson(allParcels.get(i)));
+                        // Add a comma if it's not the last item
+                        if (i < allParcels.size() - 1) {
+                            jsonBuilder.append(",");
+                        }
+                    }
+                    jsonBuilder.append("]");
+
+                    String jsonResponse = jsonBuilder.toString();
+                    
+                    exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(jsonResponse.getBytes());
+                    os.close();
+                }
+            });
+            // 6. ENDPOINT: DELETE PARCEL (CRUD Requirement)
+            server.createContext("/api/delete", new HttpHandler() {
+                @Override
+                public void handle(HttpExchange exchange) throws IOException {
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "DELETE, OPTIONS");
+                    
+                    if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+
+                    // Extract ID from the URL (e.g., /api/delete?id=P001)
+                    String query = exchange.getRequestURI().getQuery();
+                    String parcelId = "";
+                    if (query != null && query.contains("id=")) {
+                        parcelId = query.split("id=")[1].trim();
+                    }
+
+                    // Delete from Hash Map
+                    boolean removed = manager.deleteParcel(parcelId);
+                    
+                    String jsonResponse;
+                    if (removed) {
+                        jsonResponse = "{\"status\":\"success\"}";
+                        exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
+                    } else {
+                        jsonResponse = "{\"status\":\"error\", \"message\":\"Not found\"}";
+                        exchange.sendResponseHeaders(404, jsonResponse.getBytes().length);
+                    }
+                    
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(jsonResponse.getBytes());
+                    os.close();
+                }
+            });
         } catch (IOException e) {
             System.err.println("[SERVER] Failed to start server: " + e.getMessage());
         }
@@ -212,7 +320,25 @@ public class Main {
                 "\"receiver\":\"" + parcel.getReceiver() + "\"," +
                 "\"destination\":\"" + parcel.getDestination() + "\"," +
                 "\"weight\":" + parcel.getWeight() + "," +
-                "\"priority\":\"" + parcel.getPriority() + "\"" +
+                "\"priority\":\"" + parcel.getPriority() + "\"," + 
+                "\"status\":\"" + parcel.getStatus() + "\"" + // Added status here!
                 "}";
+    }
+
+    /*Helper method to extract values from a simple JSON string without dependencies.*/
+    private static String extractJsonValue(String json, String key) {
+        String searchKey = "\"" + key + "\":\"";
+        int startIndex = json.indexOf(searchKey);
+        if (startIndex == -1) {
+            // Check for unquoted numbers
+            searchKey = "\"" + key + "\":";
+            startIndex = json.indexOf(searchKey);
+            if(startIndex == -1) return "";
+            int endIndex = json.indexOf(",", startIndex + searchKey.length());
+            if(endIndex == -1) endIndex = json.indexOf("}", startIndex + searchKey.length());
+            return json.substring(startIndex + searchKey.length(), endIndex).trim();
+        }
+        int endIndex = json.indexOf("\"", startIndex + searchKey.length());
+        return json.substring(startIndex + searchKey.length(), endIndex);
     }
 }
