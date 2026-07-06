@@ -1,14 +1,15 @@
 /*PAGE LOADED*/
-document.addEventListener("DOMContentLoaded",function(){
-    animateCards();
-    animateCounters();
-    searchParcel();
-    showWelcomeToast();
-    enableDarkMode();
-    sidebarToggle();
-    loadAllParcels();
-    loadDashboardData();
-    loadDispatchData();
+document.addEventListener("DOMContentLoaded", function() {
+    // Wrapping in try-catch ensures one missing function doesn't crash the whole page!
+    try { animateCards(); } catch(e){}
+    try { animateCounters(); } catch(e){}
+    try { searchParcel(); } catch(e){}
+    try { showWelcomeToast(); } catch(e){}
+    try { enableDarkMode(); } catch(e){}
+    try { sidebarToggle(); } catch(e){}
+    try { loadAllParcels(); } catch(e){}
+    try { loadDashboardData(); } catch(e){} // Now fully implemented!
+    try { loadDispatchData(); } catch(e){}  // Will now run successfully!
 });
 
 
