@@ -30,77 +30,7 @@ public class Main {
         manager.registerParcel(p3);
         manager.registerParcel(p4);
 
-        /*DISPLAY ALL PARCELS*/
-        System.out.println("\nALL REGISTERED PARCELS");
-        manager.displayAllParcels();
         
-        /*HASHMAP SEARCH*/
-        System.out.println("\nSEARCH USING HASHMAP");
-        Parcel found = manager.searchParcel("P003");
-        if(found != null){
-            found.displayParcel();
-        }
-        else{
-            System.out.println("Parcel not found.");
-        }
-
-        /*UPDATE STATUS*/
-        System.out.println("\nUPDATING PARCEL STATUS...");
-        manager.updateParcelStatus("P003", "Collected");
-        manager.updateParcelStatus("P003", "Sorting Hub");
-        manager.updateParcelStatus("P003", "In Transit");
-        manager.updateParcelStatus("P003", "Delivered");
-        
-        /*DISPLAY TRACKING HISTORY*/
-        System.out.println("\nTRACKING HISTORY");
-        found.displayTrackingHistory();
-        
-        /*QUICKSORT*/
-        System.out.println("\nPARCELS SORTED BY PRIORITY");
-        manager.sortParcelsByPriority();
-        
-        /*BINARY SEARCH*/
-        System.out.println("\nBINARY SEARCH");
-        Parcel binaryResult = manager.binarySearchParcel("P002");
-        if(binaryResult != null){
-            binaryResult.displayParcel();
-        }
-        else{
-            System.out.println("Parcel not found.");
-        }
-        
-        /*DISPATCH QUEUE*/
-        System.out.println("\nCURRENT DISPATCH QUEUE");
-        manager.displayDispatchQueue();
-        
-        /*DISPATCH NEXT PARCEL*/
-        System.out.println("\nDISPATCHING NEXT PARCEL...");
-        Parcel dispatched = manager.dispatchNextParcel();
-        if(dispatched != null){
-            System.out.println();
-            System.out.println(dispatched.getParcelID() + " dispatched successfully.");
-        }
-        
-        /*DISPLAY QUEUE AGAIN*/
-        System.out.println("\nUPDATED DISPATCH QUEUE");
-        manager.displayDispatchQueue();
-        
-        /*DELETE PARCEL */
-        System.out.println("\nDELETING P002");
-        manager.deleteParcel("P002");
-        
-        /*DISPLAY REMAINING PARCELS*/
-        System.out.println("\nPARCELS AFTER DELETION");
-        manager.displayAllParcels();
-
-        /*TOTAL PARCELS*/
-        System.out.println();
-        System.out.println("Total Parcels : " + manager.totalParcels());
-        System.out.println();
-        System.out.println("==========================================");
-        System.out.println("            END OF DEMONSTRATION          ");
-        System.out.println("==========================================");
-
         //  NEW: START API SERVER FOR HTML FRONTEND
         try {
             // Start server on port 8080
