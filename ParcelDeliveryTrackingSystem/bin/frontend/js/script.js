@@ -274,34 +274,114 @@ editButtons.forEach(button=>{
 
 });
 
-/*TRACK PARCEL*/
-
-const trackButton=document.getElementById("trackBtn");
+/*TRACK PARCEL - HITS THE JAVA HASH MAP & UPDATES DOM*/
+const trackButton = document.getElementById("trackBtn");
 
 if(trackButton){
-    trackButton.addEventListener("click",function(){
-        const parcelID=document.getElementById("trackingInput").value.trim();
+    trackButton.addEventListener("click", async function(e){
+        e.preventDefault(); 
+        const parcelID = document.getElementById("trackingInput").value.trim().toUpperCase();
 
-        if(parcelID===""){
+        if(parcelID === ""){
             alert("Enter Parcel ID");
             return;
         }
 
-        alert("Tracking Parcel: "+parcelID);
+        try {
+            // 1. Fetch from Java Backend
+            const response = await fetch(`http://127.0.0.1:8080/api/track?id=${parcelID}`);
+            
+            if (response.ok) {
+                const parcel = await response.json();
+                
+                // 2. Find the card body where the details live
+                // (It's the first card body inside the main row)
+                const detailsCardBody = document.querySelector(".col-lg-4 .card-body");
+                
+                if(detailsCardBody) {
+                    // Determine badge colors based on data
+                    let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
+                                       (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
+                    
+                    let statusBadge = parcel.status === "Delivered" ? "bg-success" :
+                                     (parcel.status === "Dispatched" ? "bg-primary" : "bg-secondary");
 
+                    // 3. Overwrite the HTML with the real data from Java!
+                    detailsCardBody.innerHTML = `
+                        <p><strong>Parcel ID:</strong> ${parcel.parcelID}</p>
+                        <p><strong>Sender:</strong> ${parcel.sender}</p>
+                        <p><strong>Receiver:</strong> ${parcel.receiver}</p>
+                        <p><strong>Weight:</strong> ${parcel.weight} kg</p>
+                        <p><strong>Priority:</strong> <span class="badge ${priorityBadge}">${parcel.priority}</span></p>
+                        <p><strong>Status:</strong> <span class="badge ${statusBadge}">${parcel.status}</span></p>
+                        <p><strong>Destination:</strong> ${parcel.destination}</p>
+                    `;
+                }
+                
+                const progressBar = document.querySelector(".progress-bar");
+                const summaryIcons = document.querySelectorAll(".card-body .row.text-center i");
+
+                // Determine progress based on the Java status
+                let progressPercentage = "25%";
+                let activeSteps = 1;
+
+                if (parcel.status === "Registered") {
+                    progressPercentage = "25%";
+                    activeSteps = 1;
+                } else if (parcel.status === "Dispatched" || parcel.status === "Collected" || parcel.status === "Sorting Hub") {
+                    progressPercentage = "50%";
+                    activeSteps = 2;
+                } else if (parcel.status === "In Transit") {
+                    progressPercentage = "75%";
+                    activeSteps = 3;
+                } else if (parcel.status === "Delivered") {
+                    progressPercentage = "100%";
+                    activeSteps = 4;
+                }
+
+                // Animate the Progress Bar
+                if (progressBar) {
+                    progressBar.style.width = progressPercentage;
+                    progressBar.innerText = progressPercentage;
+                    
+                    // Change color to green only if fully delivered
+                    if(progressPercentage === "100%") {
+                        progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-success";
+                    } else {
+                        progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-primary";
+                    }
+                }
+
+                // Light up the correct checkmarks at the bottom
+                if(summaryIcons.length >= 4) {
+                    // First, reset all to gray outlines
+                    summaryIcons.forEach(icon => {
+                        icon.className = "bi bi-check-circle text-secondary fs-2"; 
+                    });
+
+                    // Then fill in the completed steps with green
+                    for(let i = 0; i < activeSteps; i++) {
+                        summaryIcons[i].className = "bi bi-check-circle-fill text-success fs-2"; 
+                    }
+                }
+                
+            } else {
+                alert("Parcel " + parcelID + " not found in the system. (O(1) Hash Map lookup failed)");
+            }
+        } catch (error) {
+            console.error("Connection failed:", error);
+            alert("Could not connect to the backend server.");
+        }
     });
-
 }
-
 // 1. DISPATCH NEXT PARCEL (Triggers Backend Queue Dequeue)
 const dispatchButton = document.getElementById("dispatchBtn");
 
 if(dispatchButton){
     dispatchButton.addEventListener("click", async function(){
         try {
-            // Send request to your Java backend to dequeue the next parcel
-            const response = await fetch('http://localhost:8080/api/dispatch', {
-                method: 'POST', // or GET, depending on your Java setup
+            const response = await fetch('http://127.0.0.1:8080/api/dispatch', {
+                method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -309,11 +389,47 @@ if(dispatchButton){
 
             if (response.ok) {
                 const data = await response.json();
-                // data.parcelId should be sent back from your Java Hash Map/Queue
-                alert("Backend Success! Dispatched Parcel: " + data.parcelId); 
                 
-                // Reload the page to reflect the new queue state from the backend
-                location.reload(); 
+                // --- NEW DYNAMIC UI UPDATE ---
+                // 1. Find both tables on the page
+                const tables = document.querySelectorAll(".table-responsive tbody");
+                const queueTable = tables[0];   // Top table: Waiting Queue
+                const recentTable = tables[1];  // Bottom table: Recently Dispatched
+
+                if (queueTable && queueTable.firstElementChild) {
+                    // Grab the very first row in the queue (Demonstrating FIFO!)
+                    const firstRow = queueTable.firstElementChild;
+                    
+                    // Extract the ID and Destination text before we delete the row
+                    const parcelId = firstRow.cells[1].innerText;
+                    const destination = firstRow.cells[3].innerText;
+                    
+                    // Remove it from the Waiting Queue visually
+                    firstRow.remove();
+
+                    // Create a brand new row for the bottom table
+                    const newRow = document.createElement("tr");
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                    newRow.innerHTML = `
+                        <td>${parcelId}</td>
+                        <td>${destination}</td>
+                        <td>${timeString}</td>
+                        <td><span class="badge bg-success">Dispatched</span></td>
+                    `;
+                    
+                    // Insert it at the top of the Recently Dispatched list
+                    if (recentTable) {
+                        recentTable.insertBefore(newRow, recentTable.firstChild);
+                    }
+                }
+                
+                // Show the success message last
+                alert("Backend Success! Dispatched Parcel: " + data.parcelId); 
+
+                // Notice we removed location.reload() so the page doesn't reset!
+                
             } else {
                 alert("Failed to dispatch. Check your Java backend logic.");
             }
@@ -329,7 +445,7 @@ if(dispatchButton){
 async function triggerQuicksort(sortByColumn) {
     try {
         // We pass the column name to the backend so it knows what to sort by
-        const response = await fetch(`http://localhost:8080/api/sort?column=${sortByColumn}`, {
+        const response = await fetch(`http://127.0.0.1:8080/api/sort?column=${sortByColumn}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

@@ -144,6 +144,7 @@ public class Main {
                     exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
                     exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
                     // Handle preflight requests from the browser
                     if ("OPTIONS".equals(exchange.getRequestMethod())) {
                         exchange.sendResponseHeaders(204, -1);
@@ -175,8 +176,10 @@ public class Main {
                 @Override
                 public void handle(HttpExchange exchange) throws IOException {
                     exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                     // Trigger the backend Quicksort logic
+
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
                     manager.sortParcelsByPriority();
                     
                     // Respond to the frontend
@@ -190,7 +193,7 @@ public class Main {
             });
 
             server.start();
-            System.out.println("[SERVER] Java API live at: http://localhost:8080/api/track?id=P001");
+            System.out.println("[SERVER] Java API live at: http://127.0.0.1:8080/api/track?id=P001");
             System.out.println("[SERVER] Ready for frontend fetch requests!");
 
         } catch (IOException e) {
