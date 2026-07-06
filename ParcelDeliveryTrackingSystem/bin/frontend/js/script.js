@@ -331,7 +331,7 @@ const trackButton = document.getElementById("trackBtn");
 
 if(trackButton){
     trackButton.addEventListener("click", async function(e){
-        e.preventDefault(); 
+        e.preventDefault();
         const parcelID = document.getElementById("trackingInput").value.trim().toUpperCase();
 
         if(parcelID === ""){
@@ -692,9 +692,7 @@ window.deleteDynamicRow = async function(buttonElement, parcelID) {
     }
 }
 
-/* ==========================================
-   LOAD ALL PARCELS DYNAMICALLY INTO TABLE (parcels.html)
-   ========================================== */
+/*LOAD ALL PARCELS DYNAMICALLY INTO TABLE (parcels.html)*/
 async function loadAllParcels() {
     // Make sure we only run this on the All Parcels page
     if (!window.location.pathname.includes("parcels.html")) return;
@@ -800,5 +798,78 @@ async function loadDispatchData() {
         }
     } catch (error) {
         console.error("Failed to load queue:", error);
+    }
+}
+
+/* ==========================================
+   LOAD DASHBOARD DATA DYNAMICALLY (index.html)
+   ========================================== */
+async function loadDashboardData() {
+    // Only run this script if we are on the Dashboard page
+    if (!window.location.pathname.includes("index.html") && window.location.pathname !== "/") return;
+
+    try {
+        const response = await fetch('http://127.0.0.1:8080/api/parcels');
+        if (response.ok) {
+            let parcels = await response.json();
+
+            // 1. CALCULATE STATS
+            let total = parcels.length;
+            let inTransit = parcels.filter(p => p.status === "In Transit" || p.status === "Dispatched").length;
+            let delivered = parcels.filter(p => p.status === "Delivered").length;
+            let pending = parcels.filter(p => p.status === "Registered" || p.status === "Pending").length;
+
+            // 2. UPDATE TOP CARDS
+            const statsCards = document.querySelectorAll(".stats-card h2");
+            if (statsCards.length >= 4) {
+                statsCards[0].innerText = total;
+                statsCards[1].innerText = inTransit;
+                statsCards[2].innerText = delivered;
+                statsCards[3].innerText = pending;
+            }
+
+            // 3. UPDATE "RECENT DELIVERIES" TABLE
+            // Sort parcels by ID descending so the newest ones show at the top
+            parcels.sort((a, b) => {
+                let idA = parseInt(a.parcelID.replace(/\D/g, '')) || 0;
+                let idB = parseInt(b.parcelID.replace(/\D/g, '')) || 0;
+                return idB - idA; // Descending order
+            });
+
+            const tbody = document.querySelector(".table-responsive tbody");
+            if (tbody) {
+                tbody.innerHTML = ""; 
+                // Slice the top 5 most recent parcels
+                const recentParcels = parcels.slice(0, 5);
+                
+                recentParcels.forEach(parcel => {
+                    let statusBadge = parcel.status === "Delivered" ? "bg-success" :
+                                     (parcel.status === "Dispatched" ? "bg-primary" : 
+                                     (parcel.status === "In Transit" ? "bg-warning text-dark" : "bg-secondary"));
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${parcel.parcelID}</td>
+                            <td>${parcel.sender}</td>
+                            <td>${parcel.receiver}</td>
+                            <td><span class="badge ${statusBadge}">${parcel.status}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 4. UPDATE "PARCEL SUMMARY" CHECKLIST AT THE BOTTOM
+            const summaryCardBody = document.querySelector(".card.shadow.mt-5 .card-body");
+            if (summaryCardBody) {
+                summaryCardBody.innerHTML = `
+                    <p>✔ <strong>${total}</strong> Parcels Registered</p>
+                    <p>✔ <strong>${delivered}</strong> Successfully Delivered</p>
+                    <p>✔ <strong>${inTransit}</strong> Currently In Transit</p>
+                    <p>✔ <strong>${pending}</strong> Awaiting Dispatch</p>
+                `;
+            }
+        }
+    } catch (error) {
+        console.error("Failed to load dashboard data:", error);
     }
 }
