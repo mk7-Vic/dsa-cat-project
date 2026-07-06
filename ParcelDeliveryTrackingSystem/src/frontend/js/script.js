@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded",function(){
     enableDarkMode();
     sidebarToggle();
     loadAllParcels();
+    loadDashboardData();
+    loadDispatchData();
 });
 
 
@@ -227,6 +229,9 @@ if(parcelForm){
             if (response.ok) {
                 showNotification(`Success! ${parcelData.parcelID} has been registered and added to the Queue.`, "success");
                 parcelForm.reset();
+                if (document.querySelector(".table tbody")) {
+                    loadAllParcels(); 
+                }
             } else {
                 showNotification("Failed to register. Parcel ID might already exist.", "danger");
             }
@@ -428,7 +433,7 @@ if(dispatchButton){
     dispatchButton.addEventListener("click", async function(){
         try {
             const response = await fetch('http://127.0.0.1:8080/api/dispatch', {
-                method: 'POST', 
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -473,16 +478,19 @@ if(dispatchButton){
                 }
                 
                 // Show the success message last
-                alert("Backend Success! Dispatched Parcel: " + data.parcelId); 
+                showNotification("Backend Success! Dispatched Parcel: " + data.parcelId, 'success');
 
+                if (window.location.pathname.includes("dispatch.html")) {
+                    loadDispatchData();
+                }
                 // Notice we removed location.reload() so the page doesn't reset!
                 
             } else {
-                alert("Failed to dispatch. Check your Java backend logic.");
+                showNotification("Failed to dispatch. Check your Java backend logic.", 'danger');
             }
         } catch (error) {
             console.error("Connection failed:", error);
-            alert("Could not connect to the server. Is your VS Code Java server running?");
+            showNotification("Could not connect to the server. Is your VS Code Java server running?", 'danger');
         }
     });
 }
@@ -522,14 +530,14 @@ async function triggerQuicksort(sortByColumn) {
 function updateParcelTable(parcels) {
     // Select the table body in parcels.html
     const tbody = document.querySelector(".table tbody");
-    if (!tbody) return; 
+    if (!tbody) return;
 
     tbody.innerHTML = ""; // Clear the current unsorted rows
 
     // Loop through the sorted array and build new rows
     parcels.forEach(parcel => {
         // Assign correct badge colors based on status/priority
-        let priorityBadge = parcel.priority.toLowerCase() === 'high' ? 'bg-danger' : 
+        let priorityBadge = parcel.priority.toLowerCase() === 'high' ? 'bg-danger' :
                             parcel.priority.toLowerCase() === 'medium' ? 'bg-warning text-dark' : 'bg-success';
                             
         let statusBadge = parcel.status.toLowerCase() === 'delivered' ? 'bg-success' :
@@ -594,24 +602,112 @@ if(navbar){
 }
 
 /*LOAD ALL PARCELS DYNAMICALLY INTO TABLE*/
-async function loadAllParcels() {
-    // Find the table body on the parcels.html page
-    const tableBody = document.querySelector(".card-body table tbody");
-    const isParcelsPage = document.querySelector("th[onclick*='triggerQuicksort']");
+async function loadDispatchData() {
+    if (!window.location.pathname.includes("dispatch.html")) return;
     
-    // Only run this script if we are actually on the All Parcels page
-    if (!tableBody || !isParcelsPage) return;
+    const tables = document.querySelectorAll(".table-responsive tbody");
+    if (tables.length < 2) return;
+
+    const queueTable = tables[0];
+    const recentTable = tables[1];
+
+    try {
+        const response = await fetch('http://127.0.0.1:8080/api/parcels');
+        if (response.ok) {
+            let parcels = await response.json();
+
+            // ---> NEW CODE: The Hash Map Fix <---
+            // Sort parcels sequentially by their ID numbers to mimic actual FIFO Queue order
+            parcels.sort((a, b) => {
+                let idA = parseInt(a.parcelID.replace(/\D/g, '')) || 0;
+                let idB = parseInt(b.parcelID.replace(/\D/g, '')) || 0;
+                return idA - idB;
+            });
+
+            queueTable.innerHTML = "";
+            recentTable.innerHTML = "";
+
+            let queuePosition = 1;
+            
+            parcels.forEach(parcel => {
+                let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
+                                   (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
+
+                // If Registered, it belongs in the Waiting Queue
+                if (parcel.status === "Registered" || parcel.status === "Pending") {
+                    let positionBadge = queuePosition === 1 ? "bg-primary" : "bg-secondary";
+                    queueTable.innerHTML += `
+                        <tr>
+                            <td><span class="badge ${positionBadge}">#${queuePosition}</span></td>
+                            <td>${parcel.parcelID}</td>
+                            <td>${parcel.sender}</td>
+                            <td>${parcel.destination}</td>
+                            <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
+                            <td><span class="badge bg-warning text-dark">Waiting</span></td>
+                        </tr>
+                    `;
+                    queuePosition++;
+                } 
+                // If Dispatched, it goes to the Recent table
+                else if (parcel.status === "Dispatched") {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    recentTable.innerHTML += `
+                        <tr>
+                            <td>${parcel.parcelID}</td>
+                            <td>${parcel.destination}</td>
+                            <td>${timeString}</td>
+                            <td><span class="badge bg-success">Dispatched</span></td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Failed to load queue:", error);
+    }
+}
+
+/*DELETE PARCEL DYNAMICALLY (CRUD: DELETE)*/
+window.deleteDynamicRow = async function(buttonElement, parcelID) {
+    if(confirm(`Are you sure you want to completely delete Parcel ${parcelID} from the system?`)) {
+        try {
+            // Send DELETE request to Java Backend
+            const response = await fetch(`http://127.0.0.1:8080/api/delete?id=${parcelID}`, {
+                method: 'DELETE'
+            });
+            
+            if(response.ok) {
+                // Remove from the UI visually
+                buttonElement.closest("tr").remove();
+                showNotification(`Parcel ${parcelID} deleted successfully.`, "success");
+            } else {
+                showNotification(`Failed to delete Parcel ${parcelID}.`, "danger");
+            }
+        } catch (error) {
+            console.error("Connection failed:", error);
+            showNotification("Could not connect to backend.", "danger");
+        }
+    }
+}
+
+/* ==========================================
+   LOAD ALL PARCELS DYNAMICALLY INTO TABLE (parcels.html)
+   ========================================== */
+async function loadAllParcels() {
+    // Make sure we only run this on the All Parcels page
+    if (!window.location.pathname.includes("parcels.html")) return;
+    
+    const tableBody = document.querySelector(".card-body table tbody");
+    if (!tableBody) return;
 
     try {
         const response = await fetch('http://127.0.0.1:8080/api/parcels');
         
         if (response.ok) {
             const parcels = await response.json();
-            
-            // 1. Wipe out the hardcoded dummy HTML rows!
             tableBody.innerHTML = ""; 
 
-            // 2. Loop through the real data from Java and create new rows
             parcels.forEach(parcel => {
                 let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
                                    (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
@@ -639,7 +735,6 @@ async function loadAllParcels() {
                         </button>
                     </td>
                 `;
-                
                 tableBody.appendChild(row);
             });
         }
@@ -648,25 +743,61 @@ async function loadAllParcels() {
     }
 }
 
-/*DELETE PARCEL DYNAMICALLY (CRUD: DELETE)*/
-window.deleteDynamicRow = async function(buttonElement, parcelID) {
-    if(confirm(`Are you sure you want to completely delete Parcel ${parcelID} from the system?`)) {
-        try {
-            // Send DELETE request to Java Backend
-            const response = await fetch(`http://127.0.0.1:8080/api/delete?id=${parcelID}`, {
-                method: 'DELETE'
-            });
+/*LOAD DISPATCH QUEUES DYNAMICALLY (dispatch.html)*/
+async function loadDispatchData() {
+    // Only run on the Dispatch page
+    if (!window.location.pathname.includes("dispatch.html")) return;
+    
+    const tables = document.querySelectorAll(".table-responsive tbody");
+    if (tables.length < 2) return;
+
+    const queueTable = tables[0];
+    const recentTable = tables[1];
+
+    try {
+        const response = await fetch('http://127.0.0.1:8080/api/parcels');
+        if (response.ok) {
+            const parcels = await response.json();
+            queueTable.innerHTML = "";
+            recentTable.innerHTML = "";
+
+            let queuePosition = 1;
             
-            if(response.ok) {
-                // Remove from the UI visually
-                buttonElement.closest("tr").remove();
-                showNotification(`Parcel ${parcelID} deleted successfully.`, "success");
-            } else {
-                showNotification(`Failed to delete Parcel ${parcelID}.`, "danger");
-            }
-        } catch (error) {
-            console.error("Connection failed:", error);
-            showNotification("Could not connect to backend.", "danger");
+            parcels.forEach(parcel => {
+                let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
+                                   (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
+
+                // If Registered, it belongs in the Waiting Queue
+                if (parcel.status === "Registered" || parcel.status === "Pending") {
+                    let positionBadge = queuePosition === 1 ? "bg-primary" : "bg-secondary";
+                    queueTable.innerHTML += `
+                        <tr>
+                            <td><span class="badge ${positionBadge}">#${queuePosition}</span></td>
+                            <td>${parcel.parcelID}</td>
+                            <td>${parcel.sender}</td>
+                            <td>${parcel.destination}</td>
+                            <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
+                            <td><span class="badge bg-warning text-dark">Waiting</span></td>
+                        </tr>
+                    `;
+                    queuePosition++;
+                } 
+                // If Dispatched, it goes to the Recent table
+                else if (parcel.status === "Dispatched") {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    recentTable.innerHTML += `
+                        <tr>
+                            <td>${parcel.parcelID}</td>
+                            <td>${parcel.destination}</td>
+                            <td>${timeString}</td>
+                            <td><span class="badge bg-success">Dispatched</span></td>
+                        </tr>
+                    `;
+                }
+            });
         }
+    } catch (error) {
+        console.error("Failed to load queue:", error);
     }
 }
