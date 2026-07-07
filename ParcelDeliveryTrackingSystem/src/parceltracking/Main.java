@@ -20,10 +20,10 @@ public class Main {
         System.out.println("==========================================");
 
         /*REGISTER PARCELS*/
-        Parcel p1 = new Parcel("P001", "Victor", "James", "Nairobi", 2.5, "High");
-        Parcel p2 = new Parcel("P002", "Alice", "Brian", "Mombasa", 4.0, "Low");
-        Parcel p3 = new Parcel("P003", "Kevin", "Sarah", "Kisumu", 1.8, "Medium");
-        Parcel p4 = new Parcel("P004", "Mary", "John", "Nakuru", 6.2, "High");
+        Parcel p1 = new Parcel("P001", "Victor", "Norah", "Nairobi", 2.5, "High");
+        Parcel p2 = new Parcel("P002", "Precious", "Deborah", "Mombasa", 4.0, "Low");
+        Parcel p3 = new Parcel("P003", "Obare", "Alvin", "Kisumu", 1.8, "Medium");
+        Parcel p4 = new Parcel("P004", "Salome", "Neri", "Nakuru", 6.2, "High");
         
         manager.registerParcel(p1);
         manager.registerParcel(p2);

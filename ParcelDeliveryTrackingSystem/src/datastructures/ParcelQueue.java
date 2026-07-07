@@ -88,4 +88,42 @@ public class ParcelQueue {
             current = current.next;
         }
     }
+    // Custom method to remove a specific parcel by ID (Fixes the ghost dispatch bug)
+    public boolean remove(String parcelID) {
+        if (isEmpty()) {
+            return false;
+        }
+
+        // Case 1: The parcel to delete is at the very front of the line
+        if (front.parcel.getParcelID().equals(parcelID)) {
+            front = front.next;
+            if (front == null) {
+                rear = null; // The queue is now completely empty
+            }
+            size--;
+            return true;
+        }
+
+        // Case 2: The parcel is somewhere in the middle or at the end
+        QueueNode current = front;
+        QueueNode previous = null;
+
+        while (current != null) {
+            if (current.parcel.getParcelID().equals(parcelID)) {
+                // Unlink the current node
+                previous.next = current.next;
+                
+                // If we just deleted the very last item, we MUST update the 'rear' pointer
+                if (current.next == null) {
+                    rear = previous;
+                }
+                size--;
+                return true;
+            }
+            previous = current;
+            current = current.next;
+        }
+        
+        return false; // Parcel wasn't found in the queue
+    }
 }

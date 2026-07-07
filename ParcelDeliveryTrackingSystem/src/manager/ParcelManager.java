@@ -35,7 +35,15 @@ public class ParcelManager {
 
     // Delete parcel
     public boolean deleteParcel(String parcelID) {
-        return parcels.remove(parcelID);
+        // 1. Remove it from the Hash Table
+        boolean removedFromHash = parcels.remove(parcelID);
+        
+        // 2. If it was successfully deleted, make sure to yank it out of the Queue too!
+        if (removedFromHash) {
+            dispatchQueue.remove(parcelID);
+        }
+        
+        return removedFromHash;
     }
 
     // Update parcel status
