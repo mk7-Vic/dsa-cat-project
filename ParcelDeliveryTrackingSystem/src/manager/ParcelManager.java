@@ -49,13 +49,20 @@ public class ParcelManager {
     // Update parcel status
     public boolean updateParcelStatus(String parcelID, String status) {
         Parcel parcel = parcels.get(parcelID);
-        if(parcel == null){
+        if (parcel == null) {
             return false;
         }
+        
         parcel.setStatus(status);
+        
+        // ---> NEW: If marked as Delivered, immediately yank it from the Dispatch Queue! <---
+        if (status.equalsIgnoreCase("Delivered")) {
+            dispatchQueue.remove(parcelID);
+        }
+        
         return true;
     }
-
+    
     // Display one parcel
     public void displayParcel(String parcelID) {
         Parcel parcel = parcels.get(parcelID);

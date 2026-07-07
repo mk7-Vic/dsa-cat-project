@@ -249,6 +249,50 @@ public class Main {
                 }
             });
 
+            // 7. ENDPOINT: MARK PARCEL AS DELIVERED
+            server.createContext("/api/deliver", new HttpHandler() {
+                @Override
+                public void handle(HttpExchange exchange) throws IOException {
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                    exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "PUT, OPTIONS");
+                    
+                    if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+
+                    // Extract ID from the URL (e.g., /api/deliver?id=P001)
+                    String query = exchange.getRequestURI().getQuery();
+                    String parcelId = "";
+                    if (query != null && query.contains("id=")) {
+                        parcelId = query.split("id=")[1].trim();
+                    }
+
+                    Parcel parcel = manager.searchParcel(parcelId);
+                    String jsonResponse;
+                    int statusCode;
+
+                    if (parcel != null) {
+                        if (parcel.getStatus().equalsIgnoreCase("Delivered")) {
+                            jsonResponse = "{\"status\":\"error\", \"message\":\"Parcel is already delivered!\"}";
+                            statusCode = 400; // Bad Request
+                        } else {
+                            manager.updateParcelStatus(parcelId, "Delivered");
+                            jsonResponse = "{\"status\":\"success\"}";
+                            statusCode = 200; // OK
+                        }
+                    } else {
+                        jsonResponse = "{\"status\":\"error\", \"message\":\"Parcel not found\"}";
+                        statusCode = 404; // Not Found
+                    }
+                    
+                    exchange.sendResponseHeaders(statusCode, jsonResponse.getBytes().length);
+                    OutputStream os = exchange.getResponseBody();
+                    os.write(jsonResponse.getBytes());
+                    os.close();
+                }
+            });
+
             server.setExecutor(null);
             server.start();
         } catch (IOException e) {

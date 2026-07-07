@@ -363,11 +363,18 @@ function updateParcelTable(parcels) {
     tbody.innerHTML = ""; 
 
     parcels.forEach(parcel => {
+        // 1. Determine Priority Badge Color
         let priorityBadge = parcel.priority.toLowerCase() === 'high' ? 'bg-danger' :
                             parcel.priority.toLowerCase() === 'medium' ? 'bg-warning text-dark' : 'bg-success';
                             
+        // 2. ---> RESTORED THIS MISSING LINE! Determine Status Badge Color <---
         let statusBadge = parcel.status.toLowerCase() === 'delivered' ? 'bg-success' :
-                          parcel.status.toLowerCase() === 'in transit' ? 'bg-warning text-dark' : 'bg-secondary';
+                          (parcel.status.toLowerCase() === 'dispatched' ? 'bg-primary' : 
+                          (parcel.status.toLowerCase() === 'in transit' ? 'bg-warning text-dark' : 'bg-secondary'));
+
+        // 3. Setup button styles based on status
+        let deliverDisabled = parcel.status.toLowerCase() === 'delivered' ? 'disabled' : '';
+        let deliverBtnClass = parcel.status.toLowerCase() === 'delivered' ? 'btn-secondary' : 'btn-success';
 
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -378,14 +385,58 @@ function updateParcelTable(parcels) {
             <td><span class="badge ${statusBadge}">${parcel.status}</span></td>
             <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
             <td>
-                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewParcelModal"><i class="bi bi-eye"></i></button>
-                <button class="btn btn-sm btn-warning" onclick="showNotification('Edit mode coming soon!', 'info')"><i class="bi bi-pencil-square"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="deleteDynamicRow(this, '${parcel.parcelID}')"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-sm btn-primary" onclick="viewParcelDetails('${parcel.parcelID}')" title="View"><i class="bi bi-eye"></i></button>
+                <button class="btn btn-sm ${deliverBtnClass}" ${deliverDisabled} onclick="markDelivered('${parcel.parcelID}')" title="Mark Delivered"><i class="bi bi-check-circle"></i></button>
+                
+                <button class="btn btn-sm btn-warning" onclick="showNotification('Edit mode coming soon!', 'info')" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDynamicRow(this, '${parcel.parcelID}')" title="Delete"><i class="bi bi-trash"></i></button>
             </td>
         `;
         tbody.appendChild(row);
     });
 }
+
+/* VIEW PARCEL DETAILS DYNAMICALLY IN MODAL */
+window.viewParcelDetails = async function(parcelID) {
+    try {
+        // Fetch the specific parcel from Java
+        const response = await fetch(`http://127.0.0.1:8080/api/track?id=${parcelID}`);
+        
+        if (response.ok) {
+            const parcel = await response.json();
+
+            // Inject the basic text data into the modal spans
+            document.getElementById('modalParcelID').innerText = parcel.parcelID;
+            document.getElementById('modalSender').innerText = parcel.sender;
+            document.getElementById('modalReceiver').innerText = parcel.receiver;
+            document.getElementById('modalWeight').innerText = parcel.weight;
+            document.getElementById('modalDestination').innerText = parcel.destination;
+
+            // Generate the colored badges
+            let priorityBadge = parcel.priority.toLowerCase() === 'high' ? 'bg-danger' : 
+                               (parcel.priority.toLowerCase() === 'medium' ? 'bg-warning text-dark' : 'bg-success');
+                               
+            let statusBadge = parcel.status.toLowerCase() === 'delivered' ? 'bg-success' : 
+                             (parcel.status.toLowerCase() === 'dispatched' ? 'bg-primary' : 
+                             (parcel.status.toLowerCase() === 'in transit' ? 'bg-warning text-dark' : 'bg-secondary'));
+
+            // Inject the HTML badges
+            document.getElementById('modalPriority').innerHTML = `<span class="badge ${priorityBadge}">${parcel.priority}</span>`;
+            document.getElementById('modalStatus').innerHTML = `<span class="badge ${statusBadge}">${parcel.status}</span>`;
+
+            // Manually trigger the Bootstrap modal to open
+            const modalElement = document.getElementById('viewParcelModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+            modalInstance.show();
+            
+        } else {
+            showNotification(`Failed to load details for ${parcelID}`, 'danger');
+        }
+    } catch (error) {
+        console.error("Connection failed:", error);
+        showNotification("Could not connect to the server.", "danger");
+    }
+};
 
 /*DELETE PARCEL DYNAMICALLY (CRUD: DELETE)*/
 window.deleteDynamicRow = async function(buttonElement, parcelID) {
@@ -401,6 +452,31 @@ window.deleteDynamicRow = async function(buttonElement, parcelID) {
         } catch (error) {
             console.error("Connection failed:", error);
             showNotification("Could not connect to backend.", "danger");
+        }
+    }
+}
+
+/*MARK PARCEL AS DELIVERED DYNAMICALLY*/
+window.markDelivered = async function(parcelID) {
+    if(confirm(`Are you sure you want to mark Parcel ${parcelID} as Delivered?`)) {
+        try {
+            const response = await fetch(`http://127.0.0.1:8080/api/deliver?id=${parcelID}`, { 
+                method: 'PUT' 
+            });
+            
+            if(response.ok) {
+                showNotification(`Parcel ${parcelID} marked as Delivered successfully!`, "success");
+                
+                // Refresh the data natively to update UI instantly
+                if (window.location.pathname.includes("parcels.html")) loadAllParcels();
+                if (window.location.pathname.includes("index.html") || window.location.pathname === "/") loadDashboardData();
+            } else {
+                const errData = await response.json();
+                showNotification(errData.message || `Failed to update Parcel ${parcelID}.`, "warning");
+            }
+        } catch (error) {
+            console.error("Connection failed:", error);
+            showNotification("Could not connect to backend server.", "danger");
         }
     }
 }
