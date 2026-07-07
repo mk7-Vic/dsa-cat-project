@@ -327,15 +327,15 @@ editButtons.forEach(button=>{
 });
 
 /*TRACK PARCEL - HITS THE JAVA HASH MAP & UPDATES DOM*/
-const trackButton = document.getElementById("trackBtn");
+const trackingForm = document.getElementById("trackingForm");
 
-if(trackButton){
-    trackButton.addEventListener("click", async function(e){
+if(trackingForm){
+    trackingForm.addEventListener("submit", async function(e){
         e.preventDefault();
         const parcelID = document.getElementById("trackingInput").value.trim().toUpperCase();
 
         if(parcelID === ""){
-            alert("Enter Parcel ID");
+            showNotification("Please enter a Parcel ID", "warning");
             return;
         }
 
@@ -346,83 +346,106 @@ if(trackButton){
             if (response.ok) {
                 const parcel = await response.json();
                 
-                // 2. Find the card body where the details live
-                // (It's the first card body inside the main row)
-                const detailsCardBody = document.querySelector(".col-lg-4 .card-body");
+                // 2. Determine Badges and Progress Steps
+                let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
+                                   (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
                 
-                if(detailsCardBody) {
-                    // Determine badge colors based on data
-                    let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
-                                       (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
-                    
-                    let statusBadge = parcel.status === "Delivered" ? "bg-success" :
-                                     (parcel.status === "Dispatched" ? "bg-primary" : "bg-secondary");
+                let statusBadge = parcel.status === "Delivered" ? "bg-success" :
+                                 (parcel.status === "Dispatched" ? "bg-primary" : 
+                                 (parcel.status === "In Transit" ? "bg-warning text-dark" : "bg-secondary"));
 
-                    // 3. Overwrite the HTML with the real data from Java!
-                    detailsCardBody.innerHTML = `
-                        <p><strong>Parcel ID:</strong> ${parcel.parcelID}</p>
-                        <p><strong>Sender:</strong> ${parcel.sender}</p>
-                        <p><strong>Receiver:</strong> ${parcel.receiver}</p>
-                        <p><strong>Weight:</strong> ${parcel.weight} kg</p>
-                        <p><strong>Priority:</strong> <span class="badge ${priorityBadge}">${parcel.priority}</span></p>
-                        <p><strong>Status:</strong> <span class="badge ${statusBadge}">${parcel.status}</span></p>
-                        <p><strong>Destination:</strong> ${parcel.destination}</p>
-                    `;
-                }
-                
-                const progressBar = document.querySelector(".progress-bar");
-                const summaryIcons = document.querySelectorAll(".card-body .row.text-center i");
-
-                // Determine progress based on the Java status
                 let progressPercentage = "25%";
                 let activeSteps = 1;
 
-                if (parcel.status === "Registered") {
-                    progressPercentage = "25%";
-                    activeSteps = 1;
-                } else if (parcel.status === "Dispatched" || parcel.status === "Collected" || parcel.status === "Sorting Hub") {
-                    progressPercentage = "50%";
-                    activeSteps = 2;
-                } else if (parcel.status === "In Transit") {
-                    progressPercentage = "75%";
-                    activeSteps = 3;
-                } else if (parcel.status === "Delivered") {
-                    progressPercentage = "100%";
-                    activeSteps = 4;
-                }
+                if (parcel.status === "Registered") { progressPercentage = "25%"; activeSteps = 1; } 
+                else if (parcel.status === "Dispatched") { progressPercentage = "50%"; activeSteps = 2; } 
+                else if (parcel.status === "In Transit") { progressPercentage = "75%"; activeSteps = 3; } 
+                else if (parcel.status === "Delivered") { progressPercentage = "100%"; activeSteps = 4; }
 
-                // Animate the Progress Bar
+                // 3. Update Parcel Details
+                const detailsBody = document.getElementById("trackDetailsBody");
+                if(detailsBody) {
+                    detailsBody.innerHTML = `
+                        <p><strong>Parcel ID:</strong> ${parcel.parcelID}</p>
+                        <p><strong>Sender:</strong> ${parcel.sender}</p>
+                        <p><strong>Receiver:</strong> ${parcel.receiver}</p>
+                        <p><strong>Destination:</strong> ${parcel.destination}</p>
+                        <p><strong>Weight:</strong> ${parcel.weight} kg</p>
+                        <p><strong>Priority:</strong> <span class="badge ${priorityBadge}">${parcel.priority}</span></p>
+                        <p><strong>Status:</strong> <span class="badge ${statusBadge}">${parcel.status}</span></p>
+                    `;
+                }
+                
+                // 4. Update Progress Bar
+                const progressBar = document.getElementById("trackProgressBar");
                 if (progressBar) {
                     progressBar.style.width = progressPercentage;
                     progressBar.innerText = progressPercentage;
-                    
-                    // Change color to green only if fully delivered
-                    if(progressPercentage === "100%") {
-                        progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-success";
-                    } else {
-                        progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-primary";
-                    }
+                    progressBar.className = progressPercentage === "100%" 
+                        ? "progress-bar progress-bar-striped progress-bar-animated bg-success"
+                        : "progress-bar progress-bar-striped progress-bar-animated bg-primary";
                 }
 
-                // Light up the correct checkmarks at the bottom
-                if(summaryIcons.length >= 4) {
-                    // First, reset all to gray outlines
-                    summaryIcons.forEach(icon => {
-                        icon.className = "bi bi-check-circle text-secondary fs-2"; 
-                    });
+                // 5. Update Timeline Dynamically
+                const timeline = document.getElementById("trackTimeline");
+                if(timeline) {
+                    // Decide which icons get colored based on the active steps
+                    let c1 = activeSteps >= 1 ? "text-success" : "text-secondary opacity-50";
+                    let c2 = activeSteps >= 2 ? "text-primary" : "text-secondary opacity-50";
+                    let c3 = activeSteps >= 3 ? "text-warning" : "text-secondary opacity-50";
+                    let c4 = activeSteps >= 4 ? "text-success" : "text-secondary opacity-50";
 
-                    // Then fill in the completed steps with green
-                    for(let i = 0; i < activeSteps; i++) {
-                        summaryIcons[i].className = "bi bi-check-circle-fill text-success fs-2"; 
+                    timeline.innerHTML = `
+                        <div class="timeline">
+                            <div class="timeline-item mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3"><i class="bi bi-check-circle-fill fs-3 ${c1}"></i></div>
+                                    <div><h5 class="${activeSteps < 1 ? 'text-muted' : ''}">Parcel Registered</h5></div>
+                                </div>
+                            </div>
+                            <div class="timeline-item mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3"><i class="bi bi-box-seam-fill fs-3 ${c2}"></i></div>
+                                    <div><h5 class="${activeSteps < 2 ? 'text-muted' : ''}">Dispatched</h5></div>
+                                </div>
+                            </div>
+                            <div class="timeline-item mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3"><i class="bi bi-truck fs-3 ${c3}"></i></div>
+                                    <div><h5 class="${activeSteps < 3 ? 'text-muted' : ''}">In Transit</h5></div>
+                                </div>
+                            </div>
+                            <div class="timeline-item mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3"><i class="bi bi-house-check-fill fs-3 ${c4}"></i></div>
+                                    <div><h5 class="${activeSteps < 4 ? 'text-muted' : ''}">Delivered Successfully</h5></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 6. Update Bottom Summary Icons
+                const summaryContainer = document.getElementById("trackSummaryIcons");
+                if (summaryContainer) {
+                    const icons = summaryContainer.querySelectorAll("i");
+                    icons.forEach(icon => icon.className = "bi bi-check-circle text-secondary fs-2");
+                    for (let i = 0; i < activeSteps; i++) {
+                        icons[i].className = "bi bi-check-circle-fill text-success fs-2"; 
                     }
                 }
                 
+                showNotification(`Found Parcel ${parcelID}!`, "success");
+                
             } else {
-                alert("Parcel " + parcelID + " not found in the system. (O(1) Hash Map lookup failed)");
+                showNotification(`Parcel ${parcelID} not found in the system.`, "warning");
+                // Reset to empty state if not found
+                document.getElementById("trackDetailsBody").innerHTML = `<p class="text-danger text-center my-4">Parcel not found.</p>`;
+                document.getElementById("trackTimeline").innerHTML = `<p class="text-muted text-center my-5">Awaiting Search...</p>`;
             }
         } catch (error) {
             console.error("Connection failed:", error);
-            alert("Could not connect to the backend server.");
+            showNotification("Could not connect to the backend server.", "danger");
         }
     });
 }
