@@ -8,8 +8,9 @@ document.addEventListener("DOMContentLoaded", function() {
     try { enableDarkMode(); } catch(e){}
     try { sidebarToggle(); } catch(e){}
     try { loadAllParcels(); } catch(e){}
-    try { loadDashboardData(); } catch(e){} // Now fully implemented!
-    try { loadDispatchData(); } catch(e){}  // Will now run successfully!
+    try { loadDashboardData(); } catch(e){}
+    try { loadDispatchData(); } catch(e){}
+    try { prefillNextParcelID(); } catch(e){}
 });
 
 
@@ -199,12 +200,10 @@ function showNotification(message, type = 'success') {
 
 /*REGISTER PARCEL FORM*/
 const parcelForm = document.getElementById("parcelForm");
-
-if(parcelForm){
-    parcelForm.addEventListener("submit", async function(e){
+if (parcelForm) {
+    parcelForm.addEventListener("submit", async function(e) {
         e.preventDefault();
         
-        // Gather data from the form
         const parcelData = {
             parcelID: document.getElementById("parcelID").value.trim().toUpperCase(),
             weight: document.getElementById("weight").value.trim(),
@@ -214,13 +213,37 @@ if(parcelForm){
             priority: document.getElementById("priority").value
         };
 
-        if(Number(parcelData.weight) <= 0){
-            alert("Weight must be greater than 0.");
+        if (Number(parcelData.weight) <= 0) {
+            showNotification("Weight must be greater than 0.", "danger");
             return;
         }
 
         try {
-            // Send to Java Backend
+            // ---> NEW STRICT ID VALIDATION <---
+            const checkResponse = await fetch('http://127.0.0.1:8080/api/parcels');
+            if (checkResponse.ok) {
+                const parcels = await checkResponse.json();
+                let maxIdNum = 0;
+                parcels.forEach(p => {
+                    let num = parseInt(p.parcelID.replace(/\D/g, '')) || 0;
+                    if (num > maxIdNum) maxIdNum = num;
+                });
+
+                const expectedIdNum = maxIdNum + 1;
+                const expectedParcelID = "P" + String(expectedIdNum).padStart(3, '0');
+
+                // If user typed anything other than the exact next sequential ID, block it!
+                if (parcelData.parcelID !== expectedParcelID) {
+                    showNotification(`Invalid ID! The next required Parcel ID is ${expectedParcelID}.`, "warning");
+                    
+                    // Auto-fix the input box for them
+                    document.getElementById("parcelID").value = expectedParcelID;
+                    return; // Stop the form submission here
+                }
+            }
+            // ---> END OF VALIDATION <---
+
+            // If it passes, send to Java Backend
             const response = await fetch('http://127.0.0.1:8080/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -230,6 +253,10 @@ if(parcelForm){
             if (response.ok) {
                 showNotification(`Success! ${parcelData.parcelID} has been registered and added to the Queue.`, "success");
                 parcelForm.reset();
+                
+                // Immediately prepare the next ID in the input box!
+                prefillNextParcelID(); 
+
                 if (document.querySelector(".table tbody")) {
                     loadAllParcels(); 
                 }
@@ -894,5 +921,32 @@ async function loadDashboardData() {
         }
     } catch (error) {
         console.error("Failed to load dashboard data:", error);
+    }
+}
+
+/* AUTO-FILL NEXT PARCEL ID ON REGISTER PAGE */
+async function prefillNextParcelID() {
+    const idInput = document.getElementById("parcelID");
+    if (!idInput) return; // Only run on the register page
+
+    try {
+        const response = await fetch('http://127.0.0.1:8080/api/parcels');
+        if (response.ok) {
+            const parcels = await response.json();
+            
+            // Find the highest ID currently in the system
+            let maxIdNum = 0;
+            parcels.forEach(p => {
+                // Extract just the numbers from "P005" -> 5
+                let num = parseInt(p.parcelID.replace(/\D/g, '')) || 0;
+                if (num > maxIdNum) maxIdNum = num;
+            });
+            
+            // Calculate the next ID and pad it with zeros (e.g., P006)
+            const nextId = "P" + String(maxIdNum + 1).padStart(3, '0');
+            idInput.value = nextId; 
+        }
+    } catch (error) {
+        console.error("Could not pre-fill Parcel ID:", error);
     }
 }
