@@ -1,6 +1,5 @@
 /*PAGE LOADED*/
 document.addEventListener("DOMContentLoaded", function() {
-    // Wrapping in try-catch ensures one missing function doesn't crash the whole page!
     try { animateCards(); } catch(e){}
     try { animateCounters(); } catch(e){}
     try { searchParcel(); } catch(e){}
@@ -13,48 +12,32 @@ document.addEventListener("DOMContentLoaded", function() {
     try { prefillNextParcelID(); } catch(e){}
 });
 
-
 /*ANIMATE DASHBOARD CARDS*/
 function animateCards(){
-
     const cards=document.querySelectorAll(".stats-card");
-
     cards.forEach((card,index)=>{
         card.style.opacity="0";
-
         card.style.transform="translateY(40px)";
-
         setTimeout(()=>{
             card.style.transition="0.6s";
-
             card.style.opacity="1";
-
             card.style.transform="translateY(0px)";
-
         },index*200);
     });
 }
 
-
 /*COUNTER ANIMATION*/
 function animateCounters(){
-
     const numbers=document.querySelectorAll(".stats-card h2");
-
     numbers.forEach(counter=>{
         let target=parseInt(counter.innerText);
-
         let current=0;
-
         let speed=Math.ceil(target/50);
-
         let updateCounter=function(){
             current+=speed;
             if(current>=target){
                 counter.innerText=target;
-            }
-
-            else{
+            }else{
                 counter.innerText=current;
                 requestAnimationFrame(updateCounter);
             }
@@ -63,56 +46,44 @@ function animateCounters(){
     });
 }
 
-
 /*SEARCH BAR*/
 function searchParcel(){
     const searchInput=document.getElementById("searchInput");
     if(!searchInput) return;
     searchInput.addEventListener("keyup",function(){
-        console.log("Searching for:",searchInput.value);
+        const value=this.value.toLowerCase();
+        const rows=document.querySelectorAll("tbody tr");
+        rows.forEach(row=>{
+            row.style.display=row.innerText.toLowerCase().includes(value)?"":"none";
+        });
     });
 }
 
-
 /*WELCOME MESSAGE*/
 function showWelcomeToast(){
-
     setTimeout(()=>{
         console.log("Welcome to Parcel Delivery Tracking System");
     },1000);
 }
 
-
 /*SIDEBAR ACTIVE LINK*/
 const links=document.querySelectorAll(".nav-link");
-
 links.forEach(link=>{
     link.addEventListener("click",function(){
-        links.forEach(item=>{
-            item.classList.remove("active");
-        });
+        links.forEach(item=>item.classList.remove("active"));
         this.classList.add("active");
     });
 });
 
-
 /*CARD HOVER EFFECT*/
 const stats=document.querySelectorAll(".stats-card");
-
 stats.forEach(card=>{
-    card.addEventListener("mouseenter",()=>{
-        card.style.transform="translateY(-8px) scale(1.03)";
-    });
-
-    card.addEventListener("mouseleave",()=>{
-        card.style.transform="translateY(0px) scale(1)";
-    });
+    card.addEventListener("mouseenter",()=> card.style.transform="translateY(-8px) scale(1.03)");
+    card.addEventListener("mouseleave",()=> card.style.transform="translateY(0px) scale(1)");
 });
-
 
 /*DARK MODE*/
 function enableDarkMode(){
-
     const button=document.createElement("button");
     button.innerHTML="<i class='bi bi-moon-fill'></i>";
     button.className="btn btn-dark position-fixed";
@@ -129,55 +100,40 @@ function enableDarkMode(){
         if(dark){
             document.body.classList.toggle("dark-mode");
             button.innerHTML = "<i class='bi bi-sun-fill text-warning'></i>";
-            
-            // Optional: Make the button itself light to contrast the dark background
             button.classList.replace("btn-dark", "btn-light");
-        }
-        else{
+        } else {
             document.body.classList.remove("dark-mode");
             button.innerHTML = "<i class='bi bi-moon-fill'></i>";
-            
-            // Optional: Make the button itself dark to contrast the light background
             button.classList.replace("btn-light", "btn-dark");
         }
     });
 }
 
-
 /*SIDEBAR TOGGLE*/
 function sidebarToggle(){
-    if(window.innerWidth>768){
-        return;
-    }
+    if(window.innerWidth>768) return;
     const sidebar=document.querySelector(".sidebar");
-    if(!sidebar){
-        return;
-    }
-    sidebar.style.display="block";
+    if(sidebar) sidebar.style.display="block";
 }
 
-
-/*SMOOTH SCROLL*/
 document.documentElement.style.scrollBehavior="smooth";
 
+/* REUSABLE NOTIFICATION */
 function showNotification(message, type = 'success') {
     const toastContainer = document.querySelector('.toast-container');
-    if (!toastContainer) return; // Failsafe in case the container is missing
+    if (!toastContainer) return; 
 
-    // 1. Create the toast element
     const toastEl = document.createElement('div');
     toastEl.className = `toast align-items-center text-bg-${type} border-0 mb-2 shadow`;
     toastEl.setAttribute('role', 'alert');
     toastEl.setAttribute('aria-live', 'assertive');
     toastEl.setAttribute('aria-atomic', 'true');
 
-    // 2. Determine the right Bootstrap icon based on the type
     let icon = 'bi-info-circle-fill';
     if (type === 'success') icon = 'bi-check-circle-fill';
     if (type === 'danger') icon = 'bi-exclamation-triangle-fill';
     if (type === 'warning') icon = 'bi-exclamation-circle-fill';
 
-    // 3. Add the HTML inside the toast
     toastEl.innerHTML = `
         <div class="d-flex">
             <div class="toast-body fs-6">
@@ -187,15 +143,10 @@ function showNotification(message, type = 'success') {
         </div>
     `;
 
-    // 4. Append to container and show
     toastContainer.appendChild(toastEl);
     const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
     toast.show();
-
-    // 5. Clean up the DOM after it fades out
-    toastEl.addEventListener('hidden.bs.toast', () => {
-        toastEl.remove();
-    });
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
 }
 
 /*REGISTER PARCEL FORM*/
@@ -219,7 +170,6 @@ if (parcelForm) {
         }
 
         try {
-            // ---> NEW STRICT ID VALIDATION <---
             const checkResponse = await fetch('http://127.0.0.1:8080/api/parcels');
             if (checkResponse.ok) {
                 const parcels = await checkResponse.json();
@@ -228,22 +178,16 @@ if (parcelForm) {
                     let num = parseInt(p.parcelID.replace(/\D/g, '')) || 0;
                     if (num > maxIdNum) maxIdNum = num;
                 });
-
                 const expectedIdNum = maxIdNum + 1;
                 const expectedParcelID = "P" + String(expectedIdNum).padStart(3, '0');
 
-                // If user typed anything other than the exact next sequential ID, block it!
                 if (parcelData.parcelID !== expectedParcelID) {
                     showNotification(`Invalid ID! The next required Parcel ID is ${expectedParcelID}.`, "warning");
-                    
-                    // Auto-fix the input box for them
                     document.getElementById("parcelID").value = expectedParcelID;
-                    return; // Stop the form submission here
+                    return; 
                 }
             }
-            // ---> END OF VALIDATION <---
 
-            // If it passes, send to Java Backend
             const response = await fetch('http://127.0.0.1:8080/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -253,13 +197,8 @@ if (parcelForm) {
             if (response.ok) {
                 showNotification(`Success! ${parcelData.parcelID} has been registered and added to the Queue.`, "success");
                 parcelForm.reset();
-                
-                // Immediately prepare the next ID in the input box!
                 prefillNextParcelID(); 
-
-                if (document.querySelector(".table tbody")) {
-                    loadAllParcels(); 
-                }
+                if (document.querySelector(".table tbody")) loadAllParcels(); 
             } else {
                 showNotification("Failed to register. Parcel ID might already exist.", "danger");
             }
@@ -270,92 +209,8 @@ if (parcelForm) {
     });
 }
 
-/*SEARCH PARCEL TABLE*/
-
-const searchInput=document.getElementById("searchInput");
-
-if(searchInput){
-
-    searchInput.addEventListener("keyup",function(){
-
-        const value=this.value.toLowerCase();
-
-        const rows=document.querySelectorAll("tbody tr");
-
-        rows.forEach(row=>{
-
-            row.style.display=row.innerText.toLowerCase().includes(value)
-            ?"":"none";
-
-        });
-
-    });
-
-}
-
-/*VIEW BUTTONS*/
-
-const viewButtons=document.querySelectorAll(".btn-primary");
-
-viewButtons.forEach(button=>{
-
-    if(button.querySelector(".bi-eye")){
-
-        button.addEventListener("click",function(){
-
-            const modal=new bootstrap.Modal(document.getElementById("viewParcelModal"));
-
-            modal.show();
-
-        });
-
-    }
-
-});
-
-/*DELETE BUTTON*/
-
-const deleteButtons=document.querySelectorAll(".btn-danger");
-
-deleteButtons.forEach(button=>{
-
-    if(button.querySelector(".bi-trash")){
-
-        button.addEventListener("click",function(){
-
-            if(confirm("Delete this parcel?")){
-
-                this.closest("tr").remove();
-
-            }
-
-        });
-
-    }
-
-});
-
-/*EDIT BUTTON*/
-
-const editButtons=document.querySelectorAll(".btn-warning");
-
-editButtons.forEach(button=>{
-
-    if(button.querySelector(".bi-pencil-square")){
-
-        button.addEventListener("click",function(){
-
-            alert("Edit functionality will be connected to Java backend.");
-
-        });
-
-    }
-
-});
-
 /*TRACK PARCEL - HITS THE JAVA HASH MAP & UPDATES DOM*/
 const trackingForm = document.getElementById("trackingForm");
-
 if(trackingForm){
     trackingForm.addEventListener("submit", async function(e){
         e.preventDefault();
@@ -367,13 +222,10 @@ if(trackingForm){
         }
 
         try {
-            // 1. Fetch from Java Backend
             const response = await fetch(`http://127.0.0.1:8080/api/track?id=${parcelID}`);
-            
             if (response.ok) {
                 const parcel = await response.json();
                 
-                // 2. Determine Badges and Progress Steps
                 let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
                                    (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
                 
@@ -389,7 +241,6 @@ if(trackingForm){
                 else if (parcel.status === "In Transit") { progressPercentage = "75%"; activeSteps = 3; } 
                 else if (parcel.status === "Delivered") { progressPercentage = "100%"; activeSteps = 4; }
 
-                // 3. Update Parcel Details
                 const detailsBody = document.getElementById("trackDetailsBody");
                 if(detailsBody) {
                     detailsBody.innerHTML = `
@@ -403,7 +254,6 @@ if(trackingForm){
                     `;
                 }
                 
-                // 4. Update Progress Bar
                 const progressBar = document.getElementById("trackProgressBar");
                 if (progressBar) {
                     progressBar.style.width = progressPercentage;
@@ -413,10 +263,8 @@ if(trackingForm){
                         : "progress-bar progress-bar-striped progress-bar-animated bg-primary";
                 }
 
-                // 5. Update Timeline Dynamically
                 const timeline = document.getElementById("trackTimeline");
                 if(timeline) {
-                    // Decide which icons get colored based on the active steps
                     let c1 = activeSteps >= 1 ? "text-success" : "text-secondary opacity-50";
                     let c2 = activeSteps >= 2 ? "text-primary" : "text-secondary opacity-50";
                     let c3 = activeSteps >= 3 ? "text-warning" : "text-secondary opacity-50";
@@ -425,34 +273,25 @@ if(trackingForm){
                     timeline.innerHTML = `
                         <div class="timeline">
                             <div class="timeline-item mb-4">
-                                <div class="d-flex">
-                                    <div class="me-3"><i class="bi bi-check-circle-fill fs-3 ${c1}"></i></div>
-                                    <div><h5 class="${activeSteps < 1 ? 'text-muted' : ''}">Parcel Registered</h5></div>
-                                </div>
+                                <div class="d-flex"><div class="me-3"><i class="bi bi-check-circle-fill fs-3 ${c1}"></i></div>
+                                <div><h5 class="${activeSteps < 1 ? 'text-muted' : ''}">Parcel Registered</h5></div></div>
                             </div>
                             <div class="timeline-item mb-4">
-                                <div class="d-flex">
-                                    <div class="me-3"><i class="bi bi-box-seam-fill fs-3 ${c2}"></i></div>
-                                    <div><h5 class="${activeSteps < 2 ? 'text-muted' : ''}">Dispatched</h5></div>
-                                </div>
+                                <div class="d-flex"><div class="me-3"><i class="bi bi-box-seam-fill fs-3 ${c2}"></i></div>
+                                <div><h5 class="${activeSteps < 2 ? 'text-muted' : ''}">Dispatched</h5></div></div>
                             </div>
                             <div class="timeline-item mb-4">
-                                <div class="d-flex">
-                                    <div class="me-3"><i class="bi bi-truck fs-3 ${c3}"></i></div>
-                                    <div><h5 class="${activeSteps < 3 ? 'text-muted' : ''}">In Transit</h5></div>
-                                </div>
+                                <div class="d-flex"><div class="me-3"><i class="bi bi-truck fs-3 ${c3}"></i></div>
+                                <div><h5 class="${activeSteps < 3 ? 'text-muted' : ''}">In Transit</h5></div></div>
                             </div>
                             <div class="timeline-item mb-4">
-                                <div class="d-flex">
-                                    <div class="me-3"><i class="bi bi-house-check-fill fs-3 ${c4}"></i></div>
-                                    <div><h5 class="${activeSteps < 4 ? 'text-muted' : ''}">Delivered Successfully</h5></div>
-                                </div>
+                                <div class="d-flex"><div class="me-3"><i class="bi bi-house-check-fill fs-3 ${c4}"></i></div>
+                                <div><h5 class="${activeSteps < 4 ? 'text-muted' : ''}">Delivered Successfully</h5></div></div>
                             </div>
                         </div>
                     `;
                 }
 
-                // 6. Update Bottom Summary Icons
                 const summaryContainer = document.getElementById("trackSummaryIcons");
                 if (summaryContainer) {
                     const icons = summaryContainer.querySelectorAll("i");
@@ -461,14 +300,9 @@ if(trackingForm){
                         icons[i].className = "bi bi-check-circle-fill text-success fs-2"; 
                     }
                 }
-                
                 showNotification(`Found Parcel ${parcelID}!`, "success");
-                
             } else {
                 showNotification(`Parcel ${parcelID} not found in the system.`, "warning");
-                // Reset to empty state if not found
-                document.getElementById("trackDetailsBody").innerHTML = `<p class="text-danger text-center my-4">Parcel not found.</p>`;
-                document.getElementById("trackTimeline").innerHTML = `<p class="text-muted text-center my-5">Awaiting Search...</p>`;
             }
         } catch (error) {
             console.error("Connection failed:", error);
@@ -477,65 +311,20 @@ if(trackingForm){
     });
 }
 
-// 1. DISPATCH NEXT PARCEL (Triggers Backend Queue Dequeue)
+// 1. DISPATCH NEXT PARCEL
 const dispatchButton = document.getElementById("dispatchBtn");
-
 if(dispatchButton){
     dispatchButton.addEventListener("click", async function(){
         try {
             const response = await fetch('http://127.0.0.1:8080/api/dispatch', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
             });
 
             if (response.ok) {
                 const data = await response.json();
-                
-                // --- NEW DYNAMIC UI UPDATE ---
-                // 1. Find both tables on the page
-                const tables = document.querySelectorAll(".table-responsive tbody");
-                const queueTable = tables[0];   // Top table: Waiting Queue
-                const recentTable = tables[1];  // Bottom table: Recently Dispatched
-
-                if (queueTable && queueTable.firstElementChild) {
-                    // Grab the very first row in the queue (Demonstrating FIFO!)
-                    const firstRow = queueTable.firstElementChild;
-                    
-                    // Extract the ID and Destination text before we delete the row
-                    const parcelId = firstRow.cells[1].innerText;
-                    const destination = firstRow.cells[3].innerText;
-                    
-                    // Remove it from the Waiting Queue visually
-                    firstRow.remove();
-
-                    // Create a brand new row for the bottom table
-                    const newRow = document.createElement("tr");
-                    const now = new Date();
-                    const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                    newRow.innerHTML = `
-                        <td>${parcelId}</td>
-                        <td>${destination}</td>
-                        <td>${timeString}</td>
-                        <td><span class="badge bg-success">Dispatched</span></td>
-                    `;
-                    
-                    // Insert it at the top of the Recently Dispatched list
-                    if (recentTable) {
-                        recentTable.insertBefore(newRow, recentTable.firstChild);
-                    }
-                }
-                
-                // Show the success message last
                 showNotification("Backend Success! Dispatched Parcel: " + data.parcelId, 'success');
-
-                if (window.location.pathname.includes("dispatch.html")) {
-                    loadDispatchData();
-                }
-                // Notice we removed location.reload() so the page doesn't reset!
-                
+                if (window.location.pathname.includes("dispatch.html")) loadDispatchData();
             } else {
                 showNotification("Failed to dispatch. Check your Java backend logic.", 'danger');
             }
@@ -547,189 +336,63 @@ if(dispatchButton){
 }
 
 // 2. TRIGGER QUICKSORT (Calls backend algorithm)
-async function triggerQuicksort(sortByColumn) {
+window.triggerQuicksort = async function(sortByColumn) {
     try {
-        // Show a loading toast
         showNotification(`Sorting by ${sortByColumn}...`, 'info');
 
-        const response = await fetch(`http://127.0.0.1:8080/api/sort?column=${sortByColumn}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        // Removed custom headers to prevent CORS preflight network blocks!
+        const response = await fetch(`http://127.0.0.1:8080/api/sort?column=${sortByColumn}`);
 
         if (response.ok) {
             const sortedParcels = await response.json();
-            console.log("Sorted Data from Backend:", sortedParcels);
-            
-            // Rebuild the HTML table with the new sorted data
             updateParcelTable(sortedParcels);
-            
-            // Show success toast instead of alert
             showNotification("Quicksort executed successfully!", 'success');
         } else {
             showNotification("Backend sorting failed.", 'danger');
         }
     } catch (error) {
         console.error("Connection failed:", error);
-        showNotification("Could not connect to the server. Is your Java server running?", 'danger');
+        showNotification("Could not connect to the server. Check if backend is running.", 'danger');
     }
 }
 
 // Helper function to dynamically rebuild the table
 function updateParcelTable(parcels) {
-    // Select the table body in parcels.html
     const tbody = document.querySelector(".table tbody");
     if (!tbody) return;
+    tbody.innerHTML = ""; 
 
-    tbody.innerHTML = ""; // Clear the current unsorted rows
-
-    // Loop through the sorted array and build new rows
     parcels.forEach(parcel => {
-        // Assign correct badge colors based on status/priority
         let priorityBadge = parcel.priority.toLowerCase() === 'high' ? 'bg-danger' :
                             parcel.priority.toLowerCase() === 'medium' ? 'bg-warning text-dark' : 'bg-success';
                             
         let statusBadge = parcel.status.toLowerCase() === 'delivered' ? 'bg-success' :
                           parcel.status.toLowerCase() === 'in transit' ? 'bg-warning text-dark' : 'bg-secondary';
 
-        const row = `
-            <tr>
-                <td>${parcel.id}</td>
-                <td>${parcel.sender}</td>
-                <td>${parcel.receiver}</td>
-                <td>${parcel.destination}</td>
-                <td><span class="badge ${statusBadge}">${parcel.status}</span></td>
-                <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewParcelModal">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-warning" onclick="showNotification('Edit mode coming soon!', 'info')">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteDynamicRow(this, '${parcel.parcelID}')">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${parcel.parcelID}</td>
+            <td>${parcel.sender}</td>
+            <td>${parcel.receiver}</td>
+            <td>${parcel.destination}</td>
+            <td><span class="badge ${statusBadge}">${parcel.status}</span></td>
+            <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
+            <td>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewParcelModal"><i class="bi bi-eye"></i></button>
+                <button class="btn btn-sm btn-warning" onclick="showNotification('Edit mode coming soon!', 'info')"><i class="bi bi-pencil-square"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDynamicRow(this, '${parcel.parcelID}')"><i class="bi bi-trash"></i></button>
+            </td>
         `;
-        tbody.innerHTML += row;
+        tbody.appendChild(row);
     });
-}
-
-/* EXPORT BUTTON */
-const exportBtn = document.getElementById("exportBtn");
-if (exportBtn) {
-    exportBtn.addEventListener("click", function() {
-        alert("Exporting parcel list to CSV...");
-        // Add your export logic here later
-    });
-}
-
-/* MAIN SEARCH BUTTON (DASHBOARD) */
-const searchBtn = document.getElementById("searchBtn");
-if (searchBtn) {
-    searchBtn.addEventListener("click", function(e) {
-        e.preventDefault(); // Prevent page reload since it's in a form
-        const searchInput = document.querySelector(".navbar input[type='search']");
-        if (searchInput && searchInput.value) {
-            alert("Searching system for: " + searchInput.value);
-        }
-    });
-}
-
-/*CURRENT DATE*/
-
-const navbar=document.querySelector(".navbar");
-
-if(navbar){
-    const today=new Date();
-    const date=document.createElement("span");
-    date.className="text-muted ms-auto";
-    date.innerHTML=today.toDateString();
-    navbar.appendChild(date);
-}
-
-/*LOAD ALL PARCELS DYNAMICALLY INTO TABLE*/
-async function loadDispatchData() {
-    if (!window.location.pathname.includes("dispatch.html")) return;
-    
-    const tables = document.querySelectorAll(".table-responsive tbody");
-    if (tables.length < 2) return;
-
-    const queueTable = tables[0];
-    const recentTable = tables[1];
-
-    try {
-        const response = await fetch('http://127.0.0.1:8080/api/parcels');
-        if (response.ok) {
-            let parcels = await response.json();
-
-            // ---> NEW CODE: The Hash Map Fix <---
-            // Sort parcels sequentially by their ID numbers to mimic actual FIFO Queue order
-            parcels.sort((a, b) => {
-                let idA = parseInt(a.parcelID.replace(/\D/g, '')) || 0;
-                let idB = parseInt(b.parcelID.replace(/\D/g, '')) || 0;
-                return idA - idB;
-            });
-
-            queueTable.innerHTML = "";
-            recentTable.innerHTML = "";
-
-            let queuePosition = 1;
-            
-            parcels.forEach(parcel => {
-                let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
-                                   (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
-
-                // If Registered, it belongs in the Waiting Queue
-                if (parcel.status === "Registered" || parcel.status === "Pending") {
-                    let positionBadge = queuePosition === 1 ? "bg-primary" : "bg-secondary";
-                    queueTable.innerHTML += `
-                        <tr>
-                            <td><span class="badge ${positionBadge}">#${queuePosition}</span></td>
-                            <td>${parcel.parcelID}</td>
-                            <td>${parcel.sender}</td>
-                            <td>${parcel.destination}</td>
-                            <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
-                            <td><span class="badge bg-warning text-dark">Waiting</span></td>
-                        </tr>
-                    `;
-                    queuePosition++;
-                } 
-                // If Dispatched, it goes to the Recent table
-                else if (parcel.status === "Dispatched") {
-                    const now = new Date();
-                    const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    recentTable.innerHTML += `
-                        <tr>
-                            <td>${parcel.parcelID}</td>
-                            <td>${parcel.destination}</td>
-                            <td>${timeString}</td>
-                            <td><span class="badge bg-success">Dispatched</span></td>
-                        </tr>
-                    `;
-                }
-            });
-        }
-    } catch (error) {
-        console.error("Failed to load queue:", error);
-    }
 }
 
 /*DELETE PARCEL DYNAMICALLY (CRUD: DELETE)*/
 window.deleteDynamicRow = async function(buttonElement, parcelID) {
     if(confirm(`Are you sure you want to completely delete Parcel ${parcelID} from the system?`)) {
         try {
-            // Send DELETE request to Java Backend
-            const response = await fetch(`http://127.0.0.1:8080/api/delete?id=${parcelID}`, {
-                method: 'DELETE'
-            });
-            
+            const response = await fetch(`http://127.0.0.1:8080/api/delete?id=${parcelID}`, { method: 'DELETE' });
             if(response.ok) {
-                // Remove from the UI visually
                 buttonElement.closest("tr").remove();
                 showNotification(`Parcel ${parcelID} deleted successfully.`, "success");
             } else {
@@ -744,48 +407,15 @@ window.deleteDynamicRow = async function(buttonElement, parcelID) {
 
 /*LOAD ALL PARCELS DYNAMICALLY INTO TABLE (parcels.html)*/
 async function loadAllParcels() {
-    // Make sure we only run this on the All Parcels page
     if (!window.location.pathname.includes("parcels.html")) return;
-    
     const tableBody = document.querySelector(".card-body table tbody");
     if (!tableBody) return;
 
     try {
         const response = await fetch('http://127.0.0.1:8080/api/parcels');
-        
         if (response.ok) {
             const parcels = await response.json();
-            tableBody.innerHTML = ""; 
-
-            parcels.forEach(parcel => {
-                let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
-                                   (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
-                
-                let statusBadge = parcel.status === "Delivered" ? "bg-success" :
-                                 (parcel.status === "Dispatched" ? "bg-primary" : "bg-secondary");
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${parcel.parcelID}</td>
-                    <td>${parcel.sender}</td>
-                    <td>${parcel.receiver}</td>
-                    <td>${parcel.destination}</td>
-                    <td><span class="badge ${statusBadge}">${parcel.status}</span></td>
-                    <td><span class="badge ${priorityBadge}">${parcel.priority}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewParcelModal">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-warning" onclick="showNotification('Edit mode coming soon!', 'info')">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteDynamicRow(this, '${parcel.parcelID}')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
+            updateParcelTable(parcels); // Java automatically sends them sorted by ID now!
         }
     } catch (error) {
         console.error("Failed to load parcels from backend:", error);
@@ -794,29 +424,25 @@ async function loadAllParcels() {
 
 /*LOAD DISPATCH QUEUES DYNAMICALLY (dispatch.html)*/
 async function loadDispatchData() {
-    // Only run on the Dispatch page
     if (!window.location.pathname.includes("dispatch.html")) return;
-    
     const tables = document.querySelectorAll(".table-responsive tbody");
     if (tables.length < 2) return;
-
     const queueTable = tables[0];
     const recentTable = tables[1];
 
     try {
         const response = await fetch('http://127.0.0.1:8080/api/parcels');
         if (response.ok) {
-            const parcels = await response.json();
+            let parcels = await response.json(); // Data is already naturally sorted by ID via Java!
+
             queueTable.innerHTML = "";
             recentTable.innerHTML = "";
-
             let queuePosition = 1;
             
             parcels.forEach(parcel => {
                 let priorityBadge = parcel.priority === "High" ? "bg-danger" : 
                                    (parcel.priority === "Medium" ? "bg-warning text-dark" : "bg-success");
 
-                // If Registered, it belongs in the Waiting Queue
                 if (parcel.status === "Registered" || parcel.status === "Pending") {
                     let positionBadge = queuePosition === 1 ? "bg-primary" : "bg-secondary";
                     queueTable.innerHTML += `
@@ -830,9 +456,7 @@ async function loadDispatchData() {
                         </tr>
                     `;
                     queuePosition++;
-                } 
-                // If Dispatched, it goes to the Recent table
-                else if (parcel.status === "Dispatched") {
+                } else if (parcel.status === "Dispatched") {
                     const now = new Date();
                     const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     recentTable.innerHTML += `
@@ -851,25 +475,20 @@ async function loadDispatchData() {
     }
 }
 
-/* ==========================================
-   LOAD DASHBOARD DATA DYNAMICALLY (index.html)
-   ========================================== */
+/*LOAD DASHBOARD DATA DYNAMICALLY (index.html)*/
 async function loadDashboardData() {
-    // Only run this script if we are on the Dashboard page
     if (!window.location.pathname.includes("index.html") && window.location.pathname !== "/") return;
 
     try {
         const response = await fetch('http://127.0.0.1:8080/api/parcels');
         if (response.ok) {
-            let parcels = await response.json();
+            let parcels = await response.json(); // Arrives sorted by ID from Java
 
-            // 1. CALCULATE STATS
             let total = parcels.length;
             let inTransit = parcels.filter(p => p.status === "In Transit" || p.status === "Dispatched").length;
             let delivered = parcels.filter(p => p.status === "Delivered").length;
             let pending = parcels.filter(p => p.status === "Registered" || p.status === "Pending").length;
 
-            // 2. UPDATE TOP CARDS
             const statsCards = document.querySelectorAll(".stats-card h2");
             if (statsCards.length >= 4) {
                 statsCards[0].innerText = total;
@@ -878,18 +497,12 @@ async function loadDashboardData() {
                 statsCards[3].innerText = pending;
             }
 
-            // 3. UPDATE "RECENT DELIVERIES" TABLE
-            // Sort parcels by ID descending so the newest ones show at the top
-            parcels.sort((a, b) => {
-                let idA = parseInt(a.parcelID.replace(/\D/g, '')) || 0;
-                let idB = parseInt(b.parcelID.replace(/\D/g, '')) || 0;
-                return idB - idA; // Descending order
-            });
+            // Reverse the pre-sorted list to show the newest at the top
+            parcels.reverse();
 
             const tbody = document.querySelector(".table-responsive tbody");
             if (tbody) {
                 tbody.innerHTML = ""; 
-                // Slice the top 5 most recent parcels
                 const recentParcels = parcels.slice(0, 5);
                 
                 recentParcels.forEach(parcel => {
@@ -908,7 +521,6 @@ async function loadDashboardData() {
                 });
             }
 
-            // 4. UPDATE "PARCEL SUMMARY" CHECKLIST AT THE BOTTOM
             const summaryCardBody = document.querySelector(".card.shadow.mt-5 .card-body");
             if (summaryCardBody) {
                 summaryCardBody.innerHTML = `
@@ -927,22 +539,17 @@ async function loadDashboardData() {
 /* AUTO-FILL NEXT PARCEL ID ON REGISTER PAGE */
 async function prefillNextParcelID() {
     const idInput = document.getElementById("parcelID");
-    if (!idInput) return; // Only run on the register page
+    if (!idInput) return; 
 
     try {
         const response = await fetch('http://127.0.0.1:8080/api/parcels');
         if (response.ok) {
             const parcels = await response.json();
-            
-            // Find the highest ID currently in the system
             let maxIdNum = 0;
             parcels.forEach(p => {
-                // Extract just the numbers from "P005" -> 5
                 let num = parseInt(p.parcelID.replace(/\D/g, '')) || 0;
                 if (num > maxIdNum) maxIdNum = num;
             });
-            
-            // Calculate the next ID and pad it with zeros (e.g., P006)
             const nextId = "P" + String(maxIdNum + 1).padStart(3, '0');
             idInput.value = nextId; 
         }

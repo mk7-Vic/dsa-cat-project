@@ -36,7 +36,6 @@ public class Main {
             // Start server on port 8080
             HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
             System.out.println("\n[SERVER] Starting backend API server...");
-
             // 1. ENDPOINT: TRACK PARCEL
             server.createContext("/api/track", new HttpHandler() {
                 @Override
@@ -107,24 +106,37 @@ public class Main {
                 public void handle(HttpExchange exchange) throws IOException {
                     exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
                     exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-                    // Trigger the backend Quicksort logic
-
                     exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
-                    manager.sortParcelsByPriority();
+
+                    // Handle Preflight check
+                    if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+
+                    // 1. TRIGGER YOUR CUSTOM QUICKSORT.JAVA ALGORITHM
+                    // This calls manager -> which calls QuickSort.sortByPriority()
+                    java.util.ArrayList<Parcel> sortedList = manager.sortParcelsByPriority();
                     
-                    // Respond to the frontend
-                    String jsonResponse = "{\"status\":\"success\", \"message\":\"Backend successfully executed Quicksort!\"}";
+                    // 2. Convert the newly sorted Java list into JSON format
+                    StringBuilder jsonBuilder = new StringBuilder("[");
+                    for (int i = 0; i < sortedList.size(); i++) {
+                        jsonBuilder.append(convertParcelToJson(sortedList.get(i)));
+                        if (i < sortedList.size() - 1) {
+                            jsonBuilder.append(",");
+                        }
+                    }
+                    jsonBuilder.append("]");
+
+                    String jsonResponse = jsonBuilder.toString();
                     
+                    // 3. Send the fully sorted data back to the browser
                     exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(jsonResponse.getBytes());
                     os.close();
                 }
             });
-
-            server.start();
-            System.out.println("[SERVER] Java API live at: http://127.0.0.1:8080/api/track?id=P001");
-            System.out.println("[SERVER] Ready for frontend fetch requests!");
 
             // 4. ENDPOINT: REGISTER NEW PARCEL
             server.createContext("/api/register", new HttpHandler() {
@@ -179,11 +191,13 @@ public class Main {
                     // Get all parcels from your ParcelManager
                     java.util.ArrayList<Parcel> allParcels = manager.getAllParcels();
                     
-                    // Manually build a JSON Array string since we aren't using external libraries
+                    // ---> NEW: Use your custom Java algorithm to sort by ID! <---
+                    algorithms.Search.sortByParcelID(allParcels);
+                    
+                    // Manually build a JSON Array string
                     StringBuilder jsonBuilder = new StringBuilder("[");
                     for (int i = 0; i < allParcels.size(); i++) {
                         jsonBuilder.append(convertParcelToJson(allParcels.get(i)));
-                        // Add a comma if it's not the last item
                         if (i < allParcels.size() - 1) {
                             jsonBuilder.append(",");
                         }
@@ -234,6 +248,9 @@ public class Main {
                     os.close();
                 }
             });
+
+            server.setExecutor(null);
+            server.start();
         } catch (IOException e) {
             System.err.println("[SERVER] Failed to start server: " + e.getMessage());
         }
